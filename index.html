@@ -1,698 +1,338 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromptVerse AI - AI Prompt & Asset Studio</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            900: '#4c1d95',
-                            950: '#0f0921',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* Glassmorphism & Custom Gradient Utilities */
-        .glass-panel {
-            background: rgba(15, 12, 34, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(139, 92, 246, 0.18);
-        }
-        .glass-card {
-            background: rgba(23, 17, 48, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            border-color: rgba(139, 92, 246, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px -10px rgba(124, 58, 237, 0.3);
-        }
-        .glow-text {
-            background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #6366f1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .glow-bg {
-            box-shadow: 0 0 40px -10px rgba(124, 58, 237, 0.5);
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f0921;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3b2175;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6d28d9;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProofLock - Secure Client Review & Delivery Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .watermark-overlay {
+      background-image: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15) 20px, transparent 20px, transparent 100px);
+    }
+    .watermark-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 3rem;
+      font-weight: 800;
+      color: rgba(239, 68, 68, 0.35);
+      pointer-events: none;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .pin-marker {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
 </head>
-<body class="bg-brand-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-brand-600 selection:text-white">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Ambient Background Glows -->
-    <div class="fixed top-0 left-1/4 w-96 h-96 bg-brand-600/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-    <div class="fixed bottom-10 right-10 w-96 h-96 bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none z-0"></div>
-
-    <!-- MAIN HEADER -->
-    <header class="sticky top-0 z-40 w-full glass-panel border-b border-brand-500/20 px-4 lg:px-8 py-3.5 transition-all">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            
-            <!-- Brand Logo -->
-            <div class="flex items-center justify-between w-full md:w-auto">
-                <a href="#" class="flex items-center space-x-3 group">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <i class="fa-solid fa-bolt text-xl text-white"></i>
-                    </div>
-                    <div>
-                        <span class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-                            PromptVerse <span class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">AI Studio</span>
-                        </span>
-                        <p class="text-[10px] text-slate-400 font-medium">Prompt & Asset Engine for Creators</p>
-                    </div>
-                </a>
-
-                <!-- Mobile Menu Button & Bookmark count -->
-                <div class="flex items-center gap-3 md:hidden">
-                    <button id="mobileBookmarksBtn" class="px-3 py-1.5 rounded-lg bg-brand-900/60 border border-brand-500/30 text-xs font-medium text-brand-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bookmark text-brand-400"></i>
-                        <span id="favCountMobile">0</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Global Search & Nav Actions -->
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="relative flex-1 md:w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchInput" placeholder="Search prompts, styles, tools (e.g. Sora, Cinematic)..." 
-                        class="w-full pl-10 pr-4 py-2 text-sm bg-slate-900/80 border border-brand-500/30 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
-                </div>
-
-                <button id="viewFavsBtn" class="hidden md:flex px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-brand-900/50 border border-brand-500/30 text-sm font-medium text-slate-200 hover:text-white transition-all items-center gap-2">
-                    <i class="fa-solid fa-bookmark text-brand-400"></i>
-                    <span>Saved</span>
-                    <span id="favCount" class="ml-1 px-2 py-0.5 text-xs bg-brand-600 text-white rounded-full">0</span>
-                </button>
-
-                <a href="#generatorSection" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white text-sm font-semibold shadow-md shadow-brand-600/30 hover:shadow-brand-500/50 transition-all flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>Create Prompt</span>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <!-- HERO & GENERATOR SECTION -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-8 space-y-12 z-10 relative">
-
-        <!-- Hero Headline -->
-        <div class="text-center max-w-3xl mx-auto space-y-4">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold tracking-wide">
-                <i class="fa-solid fa-sparkles text-amber-400"></i> Next-Gen Content Studio for 2026+
-            </div>
-            <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-                Craft Perfect AI Prompts for <span class="glow-text">Video, Art & Content</span>
-            </h1>
-            <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
-                Generate production-ready prompts for Sora, Google Flow, Midjourney v6, and Social Media. Edit variables instantly or use smart prompt generation.
-            </p>
-        </div>
-
-        <!-- AI PROMPT GENERATOR SANDBOX -->
-        <section id="generatorSection" class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 via-indigo-500 to-purple-500"></div>
-
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2 rounded-lg bg-brand-500/20 text-brand-400">
-                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-white">Smart Prompt Generator</h2>
-                        <p class="text-xs text-slate-400">Instant AI synthesis based on creator parameters</p>
-                    </div>
-                </div>
-                <button id="resetGenBtn" class="text-xs text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1">
-                    <i class="fa-solid fa-rotate-right"></i> Reset
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Controls Form -->
-                <div class="lg:col-span-5 space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Target AI Engine / Platform</label>
-                        <select id="genPlatform" class="w-full px-3.5 py-2.5 bg-slate-900 border border-brand-500/30 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-brand-500">
-                            <option value="Sora / AI Video">🎬 Sora / AI Video (Google Flow, Runway Gen-3)</option>
-                            <option value="Midjourney / Flux">🎨 Midjourney v6 / Flux (Photorealistic)</option>
-                            <option value="YouTube / Reels">📱 YouTube Shorts / Instagram Reels Script</option>
-                            <option value="Vector Asset">📐 3D Icon / Vector Graphic Asset</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Subject / Core Concept</label>
-                        <input type="text" id="genSubject" placeholder="e.g. Cyberpunk samurai cat in neon Tokyo street" 
-                            class="w-full px-3.5 py-2.5 bg-slate-900 border border-brand-500/30 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Style / Aesthetics</label>
-                            <select id="genStyle" class="w-full px-3.5 py-2.5 bg-slate-900 border border-brand-500/30 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-brand-500">
-                                <option value="Cinematic 8K Hyperrealism">Cinematic 8K</option>
-                                <option value="Cyberpunk Neon Glow">Cyberpunk Glow</option>
-                                <option value="Minimalist 3D Clay render">3D Clay Illustration</option>
-                                <option value="Anime Dark Fantasy">Anime Dark Fantasy</option>
-                                <option value="Photorealistic Macro Shot">Macro Photography</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Lighting / Camera</label>
-                            <select id="genLighting" class="w-full px-3.5 py-2.5 bg-slate-900 border border-brand-500/30 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-brand-500">
-                                <option value="Volumetric rays & Golden Hour">Golden Hour Rays</option>
-                                <option value="Dynamic Neon Rim Light">Neon Rim Light</option>
-                                <option value="Dramatic Studio Lighting">Studio Lighting</option>
-                                <option value="Slow Motion Drone Tracking">Drone Tracking Shot</option>
-                                <option value="Soft Ambient Glow">Soft Ambient</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button id="generateBtn" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group">
-                        <i class="fa-solid fa-sparkles text-amber-300 group-hover:rotate-12 transition-transform"></i>
-                        <span>Generate Optimized AI Prompt</span>
-                    </button>
-                </div>
-
-                <!-- Output Sandbox -->
-                <div class="lg:col-span-7 flex flex-col justify-between bg-slate-950/80 border border-brand-500/20 rounded-xl p-5 relative">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800">
-                            <span class="font-medium flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Live Output Sandbox
-                            </span>
-                            <span id="outputEngineBadge" class="px-2 py-0.5 rounded bg-brand-900/60 text-brand-300 font-mono text-[11px]">Sora / AI Video</span>
-                        </div>
-
-                        <!-- Editable Text Area Output -->
-                        <textarea id="promptOutput" rows="6" readonly class="w-full bg-transparent text-slate-200 text-sm sm:text-base font-mono leading-relaxed focus:outline-none resize-none" placeholder="Your synthesized prompt will appear here... Click 'Generate' or select a preset from the gallery below."></textarea>
-                    </div>
-
-                    <!-- Action Bar for Output -->
-                    <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800/80 mt-4">
-                        <div class="text-xs text-slate-500">
-                            <span id="charCount">0</span> chars
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button id="copyOutputBtn" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-md">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copy Prompt</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CATEGORIES & FILTER BAR -->
-        <section class="space-y-6">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-brand-400 text-xl"></i>
-                        Curated Studio Library
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Handcrafted prompts with interactive inline variables</p>
-                </div>
-
-                <!-- Filter Pills -->
-                <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar" id="categoryFilters">
-                    <button data-cat="all" class="cat-btn active px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all bg-brand-600 text-white shadow-md">
-                        All Assets
-                    </button>
-                    <button data-cat="video" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800">
-                        🎬 AI Video (Sora/Flow)
-                    </button>
-                    <button data-cat="image" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800">
-                        🎨 Midjourney & Flux
-                    </button>
-                    <button data-cat="social" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800">
-                        📱 Reels & Captions
-                    </button>
-                    <button data-cat="asset" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800">
-                        📐 Vector & 3D Icons
-                    </button>
-                </div>
-            </div>
-
-            <!-- PROMPT GALLERY GRID -->
-            <div id="promptGallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Dynamic Prompt Cards Rendered JS -->
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden text-center py-16 space-y-3 glass-panel rounded-2xl">
-                <i class="fa-solid fa-ghost text-4xl text-slate-600"></i>
-                <p class="text-slate-400 text-sm">No prompts found matching your criteria.</p>
-                <button id="clearFiltersBtn" class="px-4 py-1.5 rounded-lg bg-brand-600/30 text-brand-300 text-xs font-medium hover:bg-brand-600/50">Reset Filters</button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="mt-20 border-t border-brand-500/20 glass-panel py-8 px-4 lg:px-8 text-center text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-2">
-                <span class="font-bold text-slate-300">PromptVerse AI Studio</span> &copy; 2026. Zero-Maintenance Micro-SaaS.
-            </div>
-            <div class="flex items-center gap-4 text-slate-400">
-                <span><i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Client-side Local Storage</span>
-                <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Privacy First</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-900 border border-brand-500/40 text-white text-xs shadow-2xl">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-        <span id="toastMsg">Prompt copied to clipboard!</span>
+  <!-- Navigation Bar -->
+  <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="bg-indigo-600 p-2 rounded-lg text-white">
+        <i class="fa-solid fa-shield-halved text-xl"></i>
+      </div>
+      <span class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">ProofLock</span>
+      <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">v1.0 Phase 1</span>
     </div>
 
-    <!-- MAIN JAVASCRIPT LOGIC -->
-    <script>
-        // --- CURATED PROMPT DATABASE ---
-        const PROMPT_DATABASE = [
-            {
-                id: 'p1',
-                title: 'Cyberpunk Hyper-Speed Drone Shot',
-                category: 'video',
-                engine: 'Sora / Runway Gen-3',
-                tags: ['Cinematic', 'Drone Shot', 'Cyberpunk'],
-                template: 'Hyper-speed fpv drone shot sweeping through [City], neon rain glowing in reflections, featuring [Subject], 8k resolution, photorealistic cinematic lighting, 60fps --ar 16:9',
-                variables: {
-                    'City': 'Futuristic Neo Tokyo',
-                    'Subject': 'a cybernetic samurai in glowing armor'
-                }
-            },
-            {
-                id: 'p2',
-                title: '3D Claymation Minimalist Icon',
-                category: 'asset',
-                engine: 'Midjourney v6',
-                tags: ['3D', 'Clay', 'Minimalist'],
-                template: '3D claymation illustration of [Subject], soft pastels, smooth matte texture, volumetric isometric lighting, clean dark background, high detail render --style raw --v 6.0',
-                variables: {
-                    'Subject': 'a cute AI robot drinking boba tea'
-                }
-            },
-            {
-                id: 'p3',
-                title: 'Viral Instagram Reel Hook Script',
-                category: 'social',
-                engine: 'ChatGPT / Claude',
-                tags: ['Shorts', 'Hook', 'Viral'],
-                template: 'Write a 15-second viral video script about [Topic]. Start with an aggressive hook statement: "[Hook_Question]". Keep tone fast-paced, inspiring, and end with a call to action to [CTA].',
-                variables: {
-                    'Topic': '3 AI tools that replace entire software teams',
-                    'Hook_Question': 'Stop scrolling if you want to make apps without code',
-                    'CTA': 'comment "BUILD" for the full guide'
-                }
-            },
-            {
-                id: 'p4',
-                title: 'Photorealistic Macro Portrait',
-                category: 'image',
-                engine: 'Flux / Midjourney',
-                tags: ['Portrait', 'Photorealism', 'Lighting'],
-                template: 'Extreme macro photographic portrait of [Subject], vibrant glowing [Color] iris details, cinematic soft rim lighting, shot on 85mm lens f/1.4, high fashion magazine render --ar 4:5',
-                variables: {
-                    'Subject': 'a futuristic astronaut cyborg lady',
-                    'Color': 'emerald green'
-                }
-            },
-            {
-                id: 'p5',
-                title: 'Atmospheric Fantasy Concept Art',
-                category: 'image',
-                engine: 'Midjourney v6',
-                tags: ['Fantasy', 'Concept Art', 'Landscape'],
-                template: 'Wide concept art painting of [Environment], mysterious glowing [Element], dark fantasy style, atmospheric fog, unreal engine 5 render, trending on artstation --ar 16:9',
-                variables: {
-                    'Environment': 'an ancient overgrown biomechanical temple',
-                    'Element': 'blue crystal monoliths'
-                }
-            },
-            {
-                id: 'p6',
-                title: 'High-Conversion SaaS Product Mockup',
-                category: 'asset',
-                engine: 'Midjourney / Flux',
-                tags: ['UI/UX', 'Product', 'SaaS'],
-                template: 'Glassmorphism dark mode UI dashboard mockup of [App_Type], neon purple accents, minimalist charts, photorealistic isometric floating screens, sleek modern aesthetics --v 6.0',
-                variables: {
-                    'App_Type': 'an AI Analytics Platform'
-                }
-            }
-        ];
+    <div class="flex items-center space-x-4">
+      <button id="viewToggleBtn" onclick="toggleRoleView()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-indigo-300 font-medium px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span id="roleLabel">Switch to Client Portal View</span>
+      </button>
+    </div>
+  </nav>
 
-        // --- APP STATE ---
-        let currentCategory = 'all';
-        let searchQuery = '';
-        let favorites = JSON.parse(localStorage.getItem('pv_favorites') || '[]');
+  <!-- Creator Dashboard View -->
+  <main id="creatorView" class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+    <div class="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800">
+      <div>
+        <h1 class="text-2xl font-bold">Creator Workspace</h1>
+        <p class="text-slate-400 text-sm mt-1">Upload client deliverables, configure protection watermarks, and issue locked links.</p>
+      </div>
+      <button onclick="openNewProjectModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 flex items-center space-x-2 transition">
+        <i class="fa-solid fa-plus"></i>
+        <span>Create Proof Link</span>
+      </button>
+    </div>
 
-        // --- DOM ELEMENTS ---
-        const promptGallery = document.getElementById('promptGallery');
-        const emptyState = document.getElementById('emptyState');
-        const searchInput = document.getElementById('searchInput');
-        const favCount = document.getElementById('favCount');
-        const favCountMobile = document.getElementById('favCountMobile');
-        const viewFavsBtn = document.getElementById('viewFavsBtn');
-        const mobileBookmarksBtn = document.getElementById('mobileBookmarksBtn');
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+        <div class="text-slate-400 text-xs font-semibold uppercase">Pending Approvals</div>
+        <div id="statPending" class="text-3xl font-bold mt-2 text-amber-400">1</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+        <div class="text-slate-400 text-xs font-semibold uppercase">Locked Revenue</div>
+        <div id="statRevenue" class="text-3xl font-bold mt-2 text-emerald-400">$350.00</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+        <div class="text-slate-400 text-xs font-semibold uppercase">Protected Files</div>
+        <div id="statFiles" class="text-3xl font-bold mt-2 text-cyan-400">2</div>
+      </div>
+    </div>
+
+    <!-- Active Projects List -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <h2 class="text-lg font-bold mb-4">Active Deliverables & Proofs</h2>
+      <div id="projectContainer" class="space-y-4">
+        <!-- Default Demo Card -->
+        <div class="bg-slate-800/50 border border-slate-700/60 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 bg-slate-700 rounded-lg overflow-hidden relative flex-shrink-0">
+              <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-red-500/20 flex items-center justify-center text-[10px] font-bold text-red-200">PROTECTED</div>
+            </div>
+            <div>
+              <div class="font-semibold text-lg flex items-center space-x-2">
+                <span>Cyberpunk Brand Illustration</span>
+                <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2 py-0.5 rounded-full">Awaiting Payment</span>
+              </div>
+              <div class="text-slate-400 text-xs mt-1">Client: studio_x@agency.com • Unlock Amount: <span class="text-emerald-400 font-semibold">$350.00</span></div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+            <button onclick="copyProofLink()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
+              <i class="fa-solid fa-copy"></i>
+              <span>Copy Link</span>
+            </button>
+            <button onclick="switchToClientPortal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
+              <i class="fa-solid fa-eye"></i>
+              <span>Preview Client View</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Protected Client Portal View -->
+  <main id="clientView" class="flex-1 p-6 max-w-6xl mx-auto w-full space-y-6 hidden">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold px-2.5 py-1 rounded-full">Secure Proofing Active</span>
+          <span class="text-slate-400 text-xs">Project #PR-9042</span>
+        </div>
+        <h1 class="text-2xl font-bold mt-2">Cyberpunk Brand Illustration</h1>
+        <p class="text-slate-400 text-sm">Review proof artwork below. Click anywhere on the image to pin feedback annotations.</p>
+      </div>
+
+      <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex items-center space-x-4">
+        <div>
+          <div class="text-xs text-slate-400">Unlock Full Original File</div>
+          <div class="text-xl font-bold text-emerald-400">$350.00</div>
+        </div>
+        <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2.5 rounded-lg shadow-lg shadow-emerald-600/30 text-sm transition">
+          <i class="fa-solid fa-lock-open mr-1.5"></i> Pay & Unlock File
+        </button>
+      </div>
+    </div>
+
+    <!-- Protected Viewer Container -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden select-none" id="canvasContainer">
         
-        // Generator Controls
-        const genPlatform = document.getElementById('genPlatform');
-        const genSubject = document.getElementById('genSubject');
-        const genStyle = document.getElementById('genStyle');
-        const genLighting = document.getElementById('genLighting');
-        const generateBtn = document.getElementById('generateBtn');
-        const promptOutput = document.getElementById('promptOutput');
-        const outputEngineBadge = document.getElementById('outputEngineBadge');
-        const copyOutputBtn = document.getElementById('copyOutputBtn');
-        const charCount = document.getElementById('charCount');
-        const resetGenBtn = document.getElementById('resetGenBtn');
+        <!-- Image Canvas with Watermark -->
+        <div class="relative max-w-full rounded-lg overflow-hidden border border-slate-700 cursor-crosshair group" id="proofWrapper" onclick="addAnnotationPin(event)">
+          <img id="proofImage" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80" class="max-h-[500px] w-full object-contain pointer-events-none">
+          
+          <!-- Dynamic Watermark Layer -->
+          <div id="watermarkLayer" class="absolute inset-0 watermark-overlay pointer-events-none flex items-center justify-center">
+            <div class="watermark-text">UNAPPROVED PROOF • PROOFLOCK PROTECTED</div>
+          </div>
 
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', () => {
-            updateFavCounters();
-            renderGallery();
-            setupEventListeners();
-            generatePrompt(); // Initial default generation
-        });
+          <!-- Pins Container -->
+          <div id="pinsContainer" class="absolute inset-0 pointer-events-none"></div>
+        </div>
 
-        // --- GALLERY RENDERER ---
-        function renderGallery() {
-            promptGallery.innerHTML = '';
-            
-            const filtered = PROMPT_DATABASE.filter(item => {
-                const matchesCat = currentCategory === 'all' || 
-                                  (currentCategory === 'favorites' ? favorites.includes(item.id) : item.category === currentCategory);
-                
-                const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                      item.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                                      item.engine.toLowerCase().includes(searchQuery.toLowerCase());
-                
-                return matchesCat && matchesSearch;
-            });
+        <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-info-circle mr-1"></i> Screenshot protection & low-res grid active until payout release.</p>
+      </div>
 
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                filtered.forEach(item => {
-                    promptGallery.appendChild(createPromptCard(item));
-                });
-            }
-        }
+      <!-- Feedback Sidebar -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col h-[550px]">
+        <h3 class="font-bold text-base mb-3 flex items-center justify-between">
+          <span>Client Annotations</span>
+          <span id="commentCount" class="text-xs bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full">0 pins</span>
+        </h3>
 
-        // --- CARD BUILDER ---
-        function createPromptCard(item) {
-            const card = document.createElement('div');
-            card.className = 'glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4 relative group';
-            
-            const isFav = favorites.includes(item.id);
+        <div id="annotationsList" class="flex-1 overflow-y-auto space-y-3 pr-1 text-sm text-slate-400">
+          <div class="text-center py-10 text-slate-500">
+            <i class="fa-solid fa-location-dot text-3xl mb-2"></i>
+            <p>Click anywhere on the proof image to pin comments or revision notes.</p>
+          </div>
+        </div>
 
-            // Replace variables in initial text
-            let currentPromptText = item.template;
-            Object.keys(item.variables).forEach(key => {
-                currentPromptText = currentPromptText.replace(`[${key}]`, item.variables[key]);
-            });
+        <div class="pt-4 border-t border-slate-800">
+          <button onclick="openPaymentModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-check-circle"></i>
+            <span>Approve & Release Original</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
 
-            card.innerHTML = `
-                <div class="space-y-3">
-                    <!-- Top Metadata -->
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="px-2.5 py-1 rounded-md bg-brand-500/20 text-brand-300 font-mono font-medium border border-brand-500/30">
-                            ${item.engine}
-                        </span>
-                        <button class="fav-toggle text-slate-500 hover:text-amber-400 transition-colors p-1" data-id="${item.id}">
-                            <i class="${isFav ? 'fa-solid text-amber-400' : 'fa-regular'} fa-star text-base"></i>
-                        </button>
-                    </div>
+  <!-- Modal: Create New Project -->
+  <div id="newProjectModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-6 rounded-2xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-lg">Create Protected Deliverable</h3>
+        <button onclick="closeNewProjectModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
 
-                    <!-- Title -->
-                    <h3 class="text-base font-bold text-white group-hover:text-brand-300 transition-colors">
-                        ${item.title}
-                    </h3>
+      <div class="space-y-3 text-sm">
+        <div>
+          <label class="block text-slate-400 mb-1">Project Title</label>
+          <input type="text" id="projectTitle" placeholder="e.g. Logo Vector Pack" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Unlock Price ($ USD)</label>
+          <input type="number" id="projectPrice" placeholder="250.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Client Email (Optional)</label>
+          <input type="email" id="clientEmail" placeholder="client@brand.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+      </div>
 
-                    <!-- Interactive Variable Field Inputs -->
-                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
-                        <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Interactive Variables</div>
-                        ${Object.keys(item.variables).map(vKey => `
-                            <div class="flex items-center gap-2">
-                                <span class="text-brand-400 font-mono text-[11px] font-medium min-w-[70px]">[${vKey}]:</span>
-                                <input type="text" data-card-id="${item.id}" data-var-key="${vKey}" value="${item.variables[vKey]}" 
-                                    class="var-input w-full bg-slate-900 border border-slate-700 focus:border-brand-500 rounded px-2 py-1 text-slate-200 focus:outline-none transition-colors">
-                            </div>
-                        `).join('')}
-                    </div>
+      <button onclick="saveProject()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition">Generate Locked Link</button>
+    </div>
+  </div>
 
-                    <!-- Prompt Display Box -->
-                    <p class="prompt-preview font-mono text-xs text-slate-300 bg-slate-900/50 p-3 rounded-lg border border-slate-800/80 leading-relaxed break-words">
-                        ${currentPromptText}
-                    </p>
-                </div>
+  <!-- Modal: Simulated Checkout -->
+  <div id="paymentModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-6 rounded-2xl space-y-5 text-center">
+      <div class="w-12 h-12 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl">
+        <i class="fa-solid fa-lock-open"></i>
+      </div>
 
-                <!-- Footer Actions & Tags -->
-                <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                    <div class="flex flex-wrap gap-1">
-                        ${item.tags.map(tag => `<span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">#${tag}</span>`).join('')}
-                    </div>
-                    
-                    <div class="flex items-center gap-1.5">
-                        <button class="try-btn px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors" title="Load into Generator Sandbox">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </button>
-                        <button class="copy-card-btn px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-md transition-all flex items-center gap-1">
-                            <i class="fa-regular fa-copy"></i>
-                            <span>Copy</span>
-                        </button>
-                    </div>
-                </div>
-            `;
+      <div>
+        <h3 class="font-bold text-xl">Approve & Unlock Original</h3>
+        <p class="text-xs text-slate-400 mt-1">Payment will be held in escrow and instantly release full resolution unwatermarked assets.</p>
+      </div>
 
-            // Card Variable Live Update Event
-            const varInputs = card.querySelectorAll('.var-input');
-            const promptPreview = card.querySelector('.prompt-preview');
-            
-            varInputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    let updatedText = item.template;
-                    varInputs.forEach(i => {
-                        const key = i.getAttribute('data-var-key');
-                        updatedText = updatedText.replace(`[${key}]`, i.value || `[${key}]`);
-                    });
-                    promptPreview.textContent = updatedText;
-                });
-            });
+      <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-xl text-left space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-slate-400">Deliverable:</span><span>Cyberpunk Illustration</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Total Amount:</span><span class="text-emerald-400 font-bold">$350.00</span></div>
+      </div>
 
-            // Card Actions
-            card.querySelector('.copy-card-btn').addEventListener('click', () => {
-                copyToClipboard(promptPreview.textContent.trim());
-                showToast('Prompt copied to clipboard!');
-            });
+      <div class="space-y-2">
+        <button onclick="processPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-credit-card"></i>
+          <span>Pay $350.00 & Download</span>
+        </button>
+        <button onclick="closePaymentModal()" class="w-full text-xs text-slate-400 hover:text-white py-2">Cancel and return to proof</button>
+      </div>
+    </div>
+  </div>
 
-            card.querySelector('.try-btn').addEventListener('click', () => {
-                promptOutput.value = promptPreview.textContent.trim();
-                charCount.textContent = promptOutput.value.length;
-                outputEngineBadge.textContent = item.engine;
-                document.getElementById('generatorSection').scrollIntoView({ behavior: 'smooth' });
-                showToast('Loaded into Generator Sandbox!');
-            });
+  <script>
+    let isClientView = false;
+    let pinCount = 0;
 
-            card.querySelector('.fav-toggle').addEventListener('click', (e) => {
-                toggleFavorite(item.id);
-            });
+    function toggleRoleView() {
+      isClientView = !isClientView;
+      document.getElementById('creatorView').classList.toggle('hidden', isClientView);
+      document.getElementById('clientView').classList.toggle('hidden', !isClientView);
+      document.getElementById('roleLabel').innerText = isClientView ? "Switch to Creator Workspace" : "Switch to Client Portal View";
+    }
 
-            return card;
-        }
+    function switchToClientPortal() {
+      if (!isClientView) toggleRoleView();
+    }
 
-        // --- SMART PROMPT GENERATOR ENGINE ---
-        function generatePrompt() {
-            const platform = genPlatform.value;
-            const subject = genSubject.value.trim() || 'A majestic cosmic dragon over a cyberpunk metropolis';
-            const style = genStyle.value;
-            const lighting = genLighting.value;
+    function openNewProjectModal() { document.getElementById('newProjectModal').classList.remove('hidden'); }
+    function closeNewProjectModal() { document.getElementById('newProjectModal').classList.add('hidden'); }
+    function openPaymentModal() { document.getElementById('paymentModal').classList.remove('hidden'); }
+    function closePaymentModal() { document.getElementById('paymentModal').classList.add('hidden'); }
 
-            let result = '';
+    function addAnnotationPin(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-            if (platform.includes('Sora')) {
-                result = `Cinematic video scene of ${subject}. Style: ${style}, rendered with ${lighting}. High dynamic range, smooth fluid physical motion, photorealistic reflections, shot on 35mm IMAX camera lens --ar 16:9 --fps 60`;
-            } else if (platform.includes('Midjourney')) {
-                result = `${subject}, ${style}, illuminated by ${lighting}, highly detailed digital art masterpiece, hyper-realistic, 8k resolution, Unreal Engine 5 render style --v 6.0 --style raw --ar 16:9`;
-            } else if (platform.includes('YouTube')) {
-                result = `[HOOK]: "Did you know this crazy secret about ${subject}?"\n[VISUAL]: Fast-paced drone shot in ${style} with ${lighting}.\n[BODY]: Explain the top 3 facts in short 5-second dynamic cuts.\n[CALL TO ACTION]: "Subscribe for more daily AI insights!"`;
-            } else {
-                result = `3D minimalist asset of ${subject}, ${style} aesthetic, isolated on dark background, soft shadow drop, ${lighting}, matte texture render, clean vector finish --v 6.0`;
-            }
+      const comment = prompt("Enter revision comment or feedback for this location:");
+      if (!comment) return;
 
-            promptOutput.value = result;
-            outputEngineBadge.textContent = platform;
-            charCount.textContent = result.length;
-        }
+      pinCount++;
+      
+      // Pin element
+      const pin = document.createElement('div');
+      pin.className = "absolute w-6 h-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center pin-marker shadow-lg border border-white pointer-events-auto cursor-pointer";
+      pin.style.left = `calc(${x}% - 12px)`;
+      pin.style.top = `calc(${y}% - 12px)`;
+      pin.innerText = pinCount;
+      document.getElementById('pinsContainer').appendChild(pin);
 
-        // --- EVENT LISTENERS ---
-        function setupEventListeners() {
-            // Live Generator Trigger
-            generateBtn.addEventListener('click', () => {
-                generatePrompt();
-                showToast('New prompt synthesized!');
-            });
+      // Annotation sidebar item
+      const list = document.getElementById('annotationsList');
+      if (pinCount === 1) list.innerHTML = '';
 
-            resetGenBtn.addEventListener('click', () => {
-                genSubject.value = '';
-                generatePrompt();
-            });
+      const item = document.createElement('div');
+      item.className = "bg-slate-800 border border-slate-700 p-3 rounded-lg text-xs space-y-1";
+      item.innerHTML = `<div class="font-bold text-red-400">Pin #${pinCount}</div><div class="text-slate-200">${comment}</div>`;
+      list.appendChild(item);
 
-            copyOutputBtn.addEventListener('click', () => {
-                copyToClipboard(promptOutput.value);
-                showToast('Output prompt copied to clipboard!');
-            });
+      document.getElementById('commentCount').innerText = `${pinCount} pins`;
+    }
 
-            // Live Search
-            searchInput.addEventListener('input', (e) => {
-                searchQuery = e.target.value;
-                renderGallery();
-            });
+    function processPayment() {
+      document.getElementById('watermarkLayer').style.display = 'none';
+      closePaymentModal();
+      alert("🎉 Payment Successful! Watermarks removed. Full high-resolution file unlocked and downloaded.");
+    }
 
-            // Category Filter Buttons
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.cat-btn').forEach(b => {
-                        b.classList.remove('bg-brand-600', 'text-white', 'shadow-md', 'active');
-                        b.classList.add('bg-slate-900/80', 'text-slate-400', 'border', 'border-slate-800');
-                    });
-                    btn.classList.add('bg-brand-600', 'text-white', 'shadow-md', 'active');
-                    btn.classList.remove('bg-slate-900/80', 'text-slate-400', 'border', 'border-slate-800');
+    function copyProofLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Proof link copied to clipboard!");
+    }
 
-                    currentCategory = btn.getAttribute('data-cat');
-                    renderGallery();
-                });
-            });
-
-            // Bookmarks Toggle Filter
-            const toggleFavsView = () => {
-                if (currentCategory === 'favorites') {
-                    currentCategory = 'all';
-                    document.querySelector('[data-cat="all"]').click();
-                } else {
-                    currentCategory = 'favorites';
-                    renderGallery();
-                    showToast('Showing your saved favorites');
-                }
-            };
-
-            viewFavsBtn.addEventListener('click', toggleFavsView);
-            mobileBookmarksBtn.addEventListener('click', toggleFavsView);
-
-            document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-                searchQuery = '';
-                searchInput.value = '';
-                currentCategory = 'all';
-                document.querySelector('[data-cat="all"]').click();
-            });
-        }
-
-        // --- FAVORITES & LOCALSTORAGE ---
-        function toggleFavorite(id) {
-            if (favorites.includes(id)) {
-                favorites = favorites.filter(favId => favId !== id);
-                showToast('Removed from saved bookmarks');
-            } else {
-                favorites.push(id);
-                showToast('Saved to your bookmarks!');
-            }
-            localStorage.setItem('pv_favorites', JSON.stringify(favorites));
-            updateFavCounters();
-            renderGallery();
-        }
-
-        function updateFavCounters() {
-            favCount.textContent = favorites.length;
-            favCountMobile.textContent = favorites.length;
-        }
-
-        // --- UTILS: CLIPBOARD & TOAST ---
-        function copyToClipboard(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text);
-            } else {
-                // Fallback for iframe restrictions
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                } catch (err) {
-                    console.error('Fallback copy failed', err);
-                }
-                document.body.removeChild(textarea);
-            }
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            toastMsg.textContent = message;
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 2500);
-        }
-    </script>
+    function saveProject() {
+      const title = document.getElementById('projectTitle').value || 'Untitled Deliverable';
+      const price = document.getElementById('projectPrice').value || '100.00';
+      
+      const container = document.getElementById('projectContainer');
+      const card = document.createElement('div');
+      card.className = "bg-slate-800/50 border border-slate-700/60 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
+      card.innerHTML = `
+        <div class="flex items-center space-x-4">
+          <div class="w-16 h-16 bg-slate-700 rounded-lg overflow-hidden relative flex-shrink-0 flex items-center justify-center text-slate-500">
+            <i class="fa-solid fa-file-image text-2xl"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-lg flex items-center space-x-2">
+              <span>${title}</span>
+              <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2 py-0.5 rounded-full">Locked</span>
+            </div>
+            <div class="text-slate-400 text-xs mt-1">Unlock Amount: <span class="text-emerald-400 font-semibold">$${price}</span></div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+          <button onclick="copyProofLink()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-copy"></i>
+            <span>Copy Link</span>
+          </button>
+          <button onclick="switchToClientPortal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-eye"></i>
+            <span>Preview Client View</span>
+          </button>
+        </div>
+      `;
+      container.prepend(card);
+      closeNewProjectModal();
+    }
+  </script>
 </body>
 </html>
