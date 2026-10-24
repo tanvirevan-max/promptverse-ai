@@ -23,6 +23,7 @@
       <div class="text-sm text-slate-400 font-bold tracking-wider hidden sm:block">BEST <span id="best" class="text-lg text-emerald-300 font-black tabular-nums">0</span></div>
     </div>
     <div id="hearts" class="flex gap-1" aria-label="Health"></div>
+    <div class="text-sm text-slate-400 font-bold tracking-wider" title="Bombs (press B)">💣 <span id="bombs" class="text-xl text-orange-300 font-black tabular-nums">2</span></div>
     <div class="flex items-center gap-2">
       <img id="facePrev" alt="" class="hidden w-9 h-9 rounded-full border-2 border-white object-cover">
       <label class="cursor-pointer bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 transition px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2">
@@ -43,7 +44,7 @@
         <h1 class="text-3xl sm:text-4xl font-black text-amber-300 leading-tight">মিরপুর স্ট্রিট চেজ</h1>
         <p class="text-slate-300 font-bold mb-3">Mirpur Street Chase</p>
         <p class="text-sm text-slate-300 mb-1">Chase down the runners and shoot them before they escape off the right edge.</p>
-        <p class="text-sm text-slate-400 mb-4">Move: <b>↑ ↓</b> / <b>W S</b> &nbsp;•&nbsp; Fire: <b>Space</b><br>Mobile: use the on-screen buttons.<br>Tip: upload your face for a big-head hero!</p>
+        <p class="text-sm text-slate-400 mb-4">Move: <b>↑ ↓</b> / <b>W S</b> &nbsp;•&nbsp; Fire: <b>Space</b> &nbsp;•&nbsp; Bomb: <b>B</b><br>Shoot the ☕ tea cup for +1 life • Boss every 200 pts<br>Mobile: use the on-screen buttons.<br>Tip: upload your face for a big-head hero!</p>
         <button id="startBtn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-lg px-8 py-2.5 rounded-xl transition">START</button>
       </div>
     </div>
@@ -65,8 +66,11 @@
       <button id="btnUp" class="ctl w-16 h-16 md:w-12 md:h-12 rounded-2xl bg-slate-600 text-2xl font-black shadow-lg">▲</button>
       <button id="btnDown" class="ctl w-16 h-16 md:w-12 md:h-12 rounded-2xl bg-slate-600 text-2xl font-black shadow-lg">▼</button>
     </div>
-    <p class="hidden md:block text-xs text-slate-400 text-center">⌨ Arrow Keys / W S to move • Space to fire • Enter to start/restart</p>
-    <button id="btnFire" class="ctl w-28 h-16 md:w-24 md:h-12 rounded-2xl bg-red-600 text-xl font-black tracking-wider shadow-lg">FIRE</button>
+    <p class="hidden md:block text-xs text-slate-400 text-center">⌨ Arrow Keys / W S to move • Space to fire • B to bomb • Enter to start/restart</p>
+    <div class="flex gap-3">
+      <button id="btnBomb" class="ctl w-24 h-16 md:w-20 md:h-12 rounded-2xl bg-amber-500 text-slate-900 text-base font-black shadow-lg">💣 BOMB</button>
+      <button id="btnFire" class="ctl w-28 h-16 md:w-24 md:h-12 rounded-2xl bg-red-600 text-xl font-black tracking-wider shadow-lg">FIRE</button>
+    </div>
   </div>
 </div>
 
@@ -86,7 +90,8 @@ const sc = y => 0.82 + 0.28 * (y - MIN_Y) / (MAX_Y - MIN_Y);
 let state = 'start';
 let score = 0, lives = 3, best = 0;
 let scroll = 0, t = 0, spawnT = 1, shootT = 0, flash = 0, shake = 0;
-let enemies = [], bullets = [], parts = [], texts = [];
+let enemies = [], bullets = [], parts = [], texts = [], pickups = [];
+let bombs = 2, level = 0, nextBoss = 200, bossCount = 0, teaT = 12, bombFlash = 0, bannerT = 0, bannerText = '', bannerCol = '#fde68a';
 const hero = { y: 445 };
 const keys = { up: false, down: false, fire: false };
 let faceCanvas = null, defaultFace = null;
@@ -110,13 +115,14 @@ try { best = +localStorage.getItem('mirpurChaseBest') || 0; } catch (e) {}
 
 /* ---------- DOM ---------- */
 const $ = id => document.getElementById(id);
-const elScore = $('score'), elBest = $('best'), elHearts = $('hearts');
+const elScore = $('score'), elBest = $('best'), elHearts = $('hearts'), elBombs = $('bombs');
 function heartSVG(full) {
   return `<svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.3 2.7 4.5 6.3 4.5c2 0 3.5 1.1 4.2 2.4h3c.7-1.3 2.2-2.4 4.2-2.4 3.6 0 5.4 3.8 3.9 7.3C19.5 16.4 12 21 12 21z" transform="translate(0 -.5)" fill="${full ? '#ef4444' : '#334155'}" stroke="${full ? '#fecaca' : '#64748b'}" stroke-width="1.2"/></svg>`;
 }
 function updateHUD() {
   elScore.textContent = score;
   elBest.textContent = best;
+  elBombs.textContent = bombs;
   elHearts.innerHTML = [0, 1, 2].map(i => heartSVG(i < lives)).join('');
 }
 
@@ -411,9 +417,10 @@ function drawHero() {
   ctx.restore();
 }
 function drawEnemy(e) {
-  const s = sc(e.y), run = t * 13 + e.ph, sw = Math.sin(run) * 14;
+  const s = sc(e.y) * (e.boss ? 1.45 : 1), run = t * 13 + e.ph, sw = Math.sin(run) * 14;
   const grow = Math.min(1, e.age * 4);
   ctx.save(); ctx.translate(e.x, e.y); ctx.scale(s * grow, s * grow);
+  if (e.flash > 0) ctx.filter = 'brightness(2.2)';
   ell(0, 3, 30, 7, 'rgba(0,0,0,.35)');
   ctx.save(); ctx.rotate(0.07);
   // bare legs
@@ -449,6 +456,12 @@ function drawEnemy(e) {
   ell(hx + 6, hy - 1, 4, 4.5, '#f2e4d0'); ell(hx + 7.5, hy - 1, 2, 2.4, '#7a1a1a');
   ctx.fillStyle = 'rgba(40,20,20,.55)'; ctx.fillRect(hx + 1, hy - 7, 10, 2);
   ctx.fillStyle = 'rgba(30,10,10,.4)'; ctx.beginPath(); ctx.ellipse(hx + 5, hy + 3, 5, 3, 0, 0, 7); ctx.fill();
+  if (e.boss) { // red bandana + scar
+    ctx.fillStyle = '#d32f2f'; ctx.fillRect(hx - 15, hy - 13, 30, 7);
+    ctx.beginPath(); ctx.moveTo(hx - 15, hy - 11); ctx.lineTo(hx - 27, hy - 6); ctx.lineTo(hx - 24, hy - 15); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(hx - 2, hy - 2); ctx.lineTo(hx + 3, hy + 8); ctx.stroke();
+  }
   // front arm holding polythene bag to mouth
   limb(5, -84, 21, -96, 7, '#8a5535');
   // polythene bag
@@ -459,6 +472,14 @@ function drawEnemy(e) {
   ctx.beginPath(); ctx.moveTo(24, -98); ctx.lineTo(33, -100); ctx.moveTo(25, -93); ctx.lineTo(34, -95); ctx.stroke();
   ell(20, -96, 4, 4, '#8a5535');
   ctx.restore();
+  if (e.boss) { // health bar
+    const bw = 70, r = Math.max(0, e.hp / e.maxHp);
+    ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(8 - bw / 2 - 1, -147, bw + 2, 10);
+    ctx.fillStyle = r > .5 ? '#22c55e' : r > .25 ? '#facc15' : '#ef4444';
+    ctx.fillRect(8 - bw / 2, -146, bw * r, 8);
+    ctx.fillStyle = '#fff'; ctx.font = '900 10px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('BOSS', 8, -152);
+  }
   ctx.restore();
 }
 
@@ -466,14 +487,14 @@ function drawEnemy(e) {
 const PANTS = ['#2c6fbb', '#b03a2e', '#1e8449', '#7d3c98', '#ca6f1e', '#117a8b'];
 const SHIRTS = ['#d7d2c4', '#7f8c8d', '#c9b458', '#9b2d2d', '#5d6d7e', '#cfd8dc'];
 function spawnEnemy() {
-  const diff = Math.min(1, score / 400);
+  const diff = Math.min(1, level / 8);
   const e = {
     x: rand(520, 790), y: rand(MIN_Y, MAX_Y),
-    vx: rand(85, 150) + diff * rand(40, 110),
+    vx: rand(85, 150) + Math.min(level, 12) * rand(8, 11),
     type: Math.random() < 0.65 ? 0 : 1,
     pant: PANTS[(Math.random() * PANTS.length) | 0],
     shirt: SHIRTS[(Math.random() * SHIRTS.length) | 0],
-    ph: Math.random() * 6, age: 0
+    ph: Math.random() * 6, age: 0, hp: 1, maxHp: 1, flash: 0
   };
   enemies.push(e);
   for (let i = 0; i < 8; i++) parts.push({ x: e.x, y: e.y - 5, vx: rand(-60, 60), vy: rand(-90, -20), r: rand(3, 7), life: rand(.3, .6), max: .6, col: 'rgba(200,190,170,.7)', g: 0 });
@@ -492,8 +513,83 @@ function splat(x, y, s) {
   }
   parts.push({ ring: true, x, y, r: 8, life: .3, max: .3, col: '#fff' });
 }
+function hitEnemy(e, dmg, s) {
+  e.hp -= dmg;
+  if (e.hp > 0) {
+    e.flash = 0.09;
+    for (let i = 0; i < 6; i++) parts.push({ x: e.x, y: e.y - 60 * s, vx: rand(-120, 160), vy: rand(-200, -40), r: rand(2, 5), life: rand(.2, .45), max: .45, col: '#ffe27a', g: 700 });
+    beep(300, 0.06, 'square', 0.04, -120);
+    return;
+  }
+  e.dead = true;
+  const pts = e.boss ? 50 : 10;
+  score += pts; elScore.textContent = score;
+  splat(e.x, e.y - 60 * s, s);
+  if (e.boss) {
+    splat(e.x - 20 * s, e.y - 90 * s, s); splat(e.x + 20 * s, e.y - 40 * s, s);
+    shake = 0.4;
+    if (bombs < 3) bombs++;
+    updateHUD();
+    texts.push({ x: e.x, y: e.y - 170 * s, s: 'BOSS DOWN! +50', life: 1.3, col: '#fb923c' });
+    texts.push({ x: e.x, y: e.y - 140 * s, s: '+1 BOMB', life: 1.3, col: '#fde047' });
+    beep(120, 0.4, 'sawtooth', 0.09, -60);
+  } else {
+    texts.push({ x: e.x, y: e.y - 120 * s, s: '+10', life: .8, col: '#fde047' });
+    beep(180, 0.16, 'sawtooth', 0.06, -100);
+  }
+}
+function useBomb() {
+  if (state !== 'play' || bombs <= 0) return;
+  const targets = enemies.filter(e => !e.dead && e.x < W + 20);
+  if (!targets.length) { texts.push({ x: W / 2, y: 150, s: 'NO TARGETS', life: .8, col: '#cbd5e1' }); return; }
+  bombs--; bombFlash = 0.45; shake = 0.5;
+  parts.push({ ring: true, x: W / 2, y: H / 2, r: 20, life: .5, max: .5, col: '#fff' });
+  for (const e of targets) {
+    const s = sc(e.y) * (e.boss ? 1.45 : 1);
+    hitEnemy(e, e.boss ? 5 : e.hp, s);
+  }
+  texts.push({ x: W / 2, y: 120, s: 'BOMB!', life: 1, col: '#fb923c' });
+  updateHUD();
+  beep(90, 0.5, 'sawtooth', 0.09, -40);
+}
+function spawnBoss() {
+  bossCount++;
+  const hp = Math.min(30, 10 + (bossCount - 1) * 4);
+  enemies.push({
+    x: rand(560, 680), y: rand(MIN_Y + 20, MAX_Y - 25),
+    vx: 55 + Math.min(level, 10) * 4,
+    type: 0, boss: true, pant: '#6a1b1b', shirt: '#2b2b2b',
+    ph: Math.random() * 6, age: 0, hp, maxHp: hp, flash: 0
+  });
+  bannerText = 'BOSS INCOMING!'; bannerCol = '#f87171'; bannerT = 1.8;
+  shake = 0.25; beep(100, 0.5, 'sawtooth', 0.08, 40);
+}
+function spawnTea() {
+  const y = rand(315, 430);
+  pickups.push({ x: rand(640, 830), y, by: y, ph: Math.random() * 6, vx: -55, dead: false });
+}
+function drawTeaCup(p) {
+  ctx.save(); ctx.translate(p.x, p.y);
+  const pulse = 1 + Math.sin(t * 6) * 0.06; ctx.scale(pulse, pulse);
+  const g = ctx.createRadialGradient(0, 0, 4, 0, 0, 40);
+  g.addColorStop(0, 'rgba(255,120,150,.55)'); g.addColorStop(1, 'rgba(255,120,150,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+  ell(0, 14, 26, 7, '#e8eef2'); ell(0, 13, 18, 4, '#c9d4db');
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(17, 0, 7, -1.3, 1.3); ctx.stroke();
+  ctx.strokeStyle = '#2c6fbb'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(17, 0, 7, -1.3, 1.3); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-16, -8); ctx.lineTo(16, -8);
+  ctx.quadraticCurveTo(15, 14, 0, 14); ctx.quadraticCurveTo(-15, 14, -16, -8); ctx.fill();
+  ctx.strokeStyle = '#2c6fbb'; ctx.lineWidth = 2; ctx.stroke();
+  ell(0, -8, 16, 4, '#a0592a');
+  ctx.fillStyle = '#e53935'; ctx.beginPath(); ctx.moveTo(0, 9);
+  ctx.bezierCurveTo(-9, 1, -5, -6, 0, -2); ctx.bezierCurveTo(5, -6, 9, 1, 0, 9); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  [-6, 6].forEach(i => { ctx.beginPath(); ctx.moveTo(i, -12); ctx.quadraticCurveTo(i + Math.sin(t * 4 + i) * 6, -22, i, -30); ctx.stroke(); });
+  ctx.restore();
+}
 function reset() {
-  score = 0; lives = 3; enemies = []; bullets = []; parts = []; texts = [];
+  score = 0; lives = 3; enemies = []; bullets = []; parts = []; texts = []; pickups = [];
+  bombs = 2; level = 0; nextBoss = 200; bossCount = 0; teaT = rand(10, 16); bombFlash = 0; bannerT = 0;
   hero.y = 445; spawnT = 0.8; shootT = 0; flash = 0; shake = 0; updateHUD();
 }
 function startGame() {
@@ -512,7 +608,9 @@ function update(dt) {
   t += dt;
   if (flash > 0) flash -= dt;
   if (shake > 0) shake -= dt;
-  const diff = Math.min(1, score / 400);
+  if (bombFlash > 0) bombFlash -= dt;
+  if (bannerT > 0) bannerT -= dt;
+  const diff = Math.min(1, level / 8);
   scroll += (state === 'play' ? 190 + diff * 130 : 90) * dt;
 
   if (state === 'play') {
@@ -521,34 +619,58 @@ function update(dt) {
     shootT -= dt;
     if (keys.fire && shootT <= 0) { shoot(); shootT = 0.17; }
     spawnT -= dt;
-    if (spawnT <= 0) { spawnEnemy(); spawnT = Math.max(0.42, 1.3 - diff * 0.85) * rand(0.7, 1.3); }
+    if (spawnT <= 0) { spawnEnemy(); spawnT = Math.max(0.35, 1.3 - level * 0.09) * rand(0.7, 1.3); }
   }
 
   // bullets
   for (const b of bullets) b.x += 980 * dt;
   // enemies
-  for (const e of enemies) { e.age += dt; if (state === 'play') e.x += e.vx * dt; }
+  for (const e of enemies) { e.age += dt; if (e.flash > 0) e.flash -= dt; if (state === 'play') e.x += e.vx * dt; }
   // collisions
   if (state === 'play') {
     for (const b of bullets) {
       if (b.dead) continue;
       for (const e of enemies) {
         if (e.dead) continue;
-        const s = sc(e.y);
+        const s = sc(e.y) * (e.boss ? 1.45 : 1);
         if (b.x > e.x - 24 * s && b.x < e.x + 32 * s && b.y > e.y - 112 * s && b.y < e.y - 4 * s) {
-          b.dead = e.dead = true;
-          score += 10; elScore.textContent = score;
-          splat(e.x, e.y - 60 * s, s);
-          texts.push({ x: e.x, y: e.y - 120 * s, s: '+10', life: .8, col: '#fde047' });
-          beep(180, 0.16, 'sawtooth', 0.06, -100);
+          b.dead = true;
+          hitEnemy(e, 1, s);
           break;
         }
       }
     }
+    // tea cup health pickups: float in, shoot them for +1 life
+    for (const p of pickups) {
+      p.x += p.vx * dt; p.y = p.by + Math.sin(t * 3 + p.ph) * 10;
+      for (const b of bullets) {
+        if (b.dead || p.dead) continue;
+        if (Math.abs(b.x - p.x) < 28 && Math.abs(b.y - p.y) < 28) {
+          b.dead = p.dead = true;
+          if (lives < 3) { lives++; texts.push({ x: p.x, y: p.y - 30, s: '+1 ♥', life: 1.1, col: '#4ade80' }); }
+          else { score += 20; elScore.textContent = score; texts.push({ x: p.x, y: p.y - 30, s: '+20', life: 1, col: '#fde047' }); }
+          for (let i = 0; i < 16; i++) parts.push({ x: p.x, y: p.y, vx: rand(-220, 220), vy: rand(-260, 60), r: rand(3, 7), life: rand(.4, .8), max: .8, col: ['#ff7aa8', '#ffd1dc', '#ffffff'][i % 3], g: 500 });
+          updateHUD(); beep(660, 0.18, 'triangle', 0.06, 440);
+        }
+      }
+    }
+    teaT -= dt;
+    if (teaT <= 0) { if (lives < 3 && !pickups.length) spawnTea(); teaT = rand(12, 20); }
+    // dynamic difficulty: +1 level every 100 points
+    const nl = Math.floor(score / 100);
+    if (nl > level) {
+      level = nl; bannerText = 'LEVEL ' + (level + 1) + ' — FASTER!'; bannerCol = '#fde68a'; bannerT = 1.5;
+      beep(520, 0.18, 'triangle', 0.06, 300);
+    }
+    // mini-boss every 200 points
+    if (score >= nextBoss && !enemies.some(e => e.boss && !e.dead)) {
+      spawnBoss(); nextBoss = (Math.floor(score / 200) + 1) * 200;
+    }
     for (const e of enemies) {
-      if (!e.dead && e.x > W + 40) {
-        e.dead = true; lives--; shake = 0.3; updateHUD();
-        texts.push({ x: W - 90, y: e.y - 80, s: 'ESCAPED  −♥', life: 1.1, col: '#f87171' });
+      if (!e.dead && e.x > W + (e.boss ? 70 : 40)) {
+        const pen = e.boss ? 2 : 1;
+        e.dead = true; lives = Math.max(0, lives - pen); shake = 0.3; updateHUD();
+        texts.push({ x: W - 100, y: e.y - 80, s: e.boss ? 'BOSS ESCAPED  −2♥' : 'ESCAPED  −♥', life: 1.1, col: '#f87171' });
         beep(140, 0.25, 'triangle', 0.07, -60);
         if (lives <= 0) { gameOver(); break; }
       }
@@ -556,6 +678,7 @@ function update(dt) {
   }
   bullets = bullets.filter(b => !b.dead && b.x < W + 30);
   enemies = enemies.filter(e => !e.dead);
+  pickups = pickups.filter(p => !p.dead && p.x > -50);
   for (const p of parts) { p.life -= dt; if (!p.ring) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; } else p.r += 140 * dt; }
   parts = parts.filter(p => p.life > 0);
   for (const f of texts) { f.life -= dt; f.y -= 40 * dt; }
@@ -569,6 +692,7 @@ function draw() {
   const list = enemies.map(e => ({ y: e.y, f: () => drawEnemy(e) }));
   list.push({ y: hero.y, f: drawHero });
   list.sort((a, b) => a.y - b.y).forEach(o => o.f());
+  for (const p of pickups) drawTeaCup(p);
   // bullets
   for (const b of bullets) {
     ctx.save(); ctx.shadowColor = b.c; ctx.shadowBlur = 12;
@@ -591,6 +715,17 @@ function draw() {
     ctx.fillStyle = f.col; ctx.fillText(f.s, f.x, f.y);
   }
   ctx.globalAlpha = 1;
+  // level label + banner
+  ctx.textAlign = 'left'; ctx.font = "900 18px 'Noto Sans Bengali', Arial, sans-serif";
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.65)'; ctx.fillStyle = '#fde68a';
+  ctx.strokeText('LEVEL ' + (level + 1), 14, 28); ctx.fillText('LEVEL ' + (level + 1), 14, 28);
+  if (bannerT > 0) {
+    ctx.globalAlpha = Math.min(1, bannerT); ctx.textAlign = 'center';
+    ctx.font = "900 42px 'Noto Sans Bengali', Arial, sans-serif"; ctx.lineWidth = 7;
+    ctx.strokeText(bannerText, W / 2, 80); ctx.fillStyle = bannerCol; ctx.fillText(bannerText, W / 2, 80);
+    ctx.globalAlpha = 1;
+  }
+  if (bombFlash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + Math.min(0.9, bombFlash * 2) + ')'; ctx.fillRect(0, 0, W, H); }
   // edge warning glow
   ctx.fillStyle = 'rgba(239,68,68,.10)'; ctx.fillRect(W - 14, ROAD_TOP, 14, H - ROAD_TOP);
   ctx.restore();
@@ -607,6 +742,7 @@ const KEYMAP = { ArrowUp: 'up', w: 'up', W: 'up', ArrowDown: 'down', s: 'down', 
 addEventListener('keydown', e => {
   if (KEYMAP[e.key]) { keys[KEYMAP[e.key]] = true; e.preventDefault(); }
   if (e.key === 'Enter' && state !== 'play') startGame();
+  if ((e.key === 'b' || e.key === 'B') && !e.repeat) useBomb();
 });
 addEventListener('keyup', e => { if (KEYMAP[e.key]) { keys[KEYMAP[e.key]] = false; e.preventDefault(); } });
 addEventListener('blur', () => { keys.up = keys.down = keys.fire = false; });
@@ -621,6 +757,8 @@ function holdBtn(id, key) {
   b.addEventListener('contextmenu', e => e.preventDefault());
 }
 holdBtn('btnUp', 'up'); holdBtn('btnDown', 'down'); holdBtn('btnFire', 'fire');
+$('btnBomb').addEventListener('pointerdown', e => { e.preventDefault(); useBomb(); });
+$('btnBomb').addEventListener('contextmenu', e => e.preventDefault());
 cv.addEventListener('contextmenu', e => e.preventDefault());
 
 /* ---------- UI buttons ---------- */
