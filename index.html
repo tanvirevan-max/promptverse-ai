@@ -1,70 +1,1033 @@
+{
+  "name": "dhaka-bus-simulator-3d",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  root: './',
+  publicDir: 'public',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets'
+  },
+  server: {
+    host: true,
+    port: 3000
+  }
+});
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ঢাকা চাকা 3D - Fixed Architecture</title>
-    <style>
-        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
-        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
-        .hud-top { display: flex; justify-content: space-between; }
-        .box { background: rgba(0,0,0,0.75); border: 2px solid #f1c40f; color: white; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
-        .controls-container { pointer-events: auto; display: flex; width: 100%; justify-content: space-between; }
-        .btn-group { display: flex; gap: 10px; }
-        .btn { width: 65px; height: 65px; background: rgba(255,255,255,0.3); border: 2px solid white; border-radius: 50%; color: white; font-size: 20px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
-        .btn:active { background: #f1c40f; color: black; }
-        .overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; text-align:center; }
-        .start-btn { background:#27ae60; color:white; font-size:22px; padding:12px 30px; border:none; border-radius:25px; cursor:pointer; font-weight:bold; margin-top:15px; }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>ঢাকা চাকা ৩ডি - Dhaka Bus Driving Game</title>
+    <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
+    <div id="app">
+        <div id="canvas-container"></div>
+        
+        <!-- Game HUD UI Overlay -->
+        <div id="hud-overlay">
+            <div class="hud-top">
+                <div class="hud-card">
+                    <span class="label">স্কোর</span>
+                    <span id="score-val" class="value">000000</span>
+                    <span id="bus-name" class="badge">অসীম পরিবহন</span>
+                </div>
+                <div class="hud-card location-card">
+                    <span class="label">এলাকা</span>
+                    <span id="location-name" class="value-blue">মিরপুর ১০ মোড়</span>
+                </div>
+            </div>
 
-    <div id="canvas-container"></div>
+            <div class="hud-bottom">
+                <div class="speed-dial">
+                    <span id="speed-num">0</span>
+                    <small>KM/H</small>
+                </div>
 
-    <div id="hud">
-        <div class="hud-top">
-            <div class="box">স্কোর: <span id="score" style="color:#f1c40f">0</span> | রুট: <span style="color:#2ecc71">মিরপুর ১০</span></div>
-            <div class="box">স্পিড: <span id="speed" style="color:#3498db">0</span> KM/H</div>
+                <!-- On-Screen Touch Controls -->
+                <div id="touch-controls" class="touch-controls">
+                    <div class="control-group">
+                        <button id="btn-left" class="ctrl-btn">◄</button>
+                        <button id="btn-right" class="ctrl-btn">►</button>
+                    </div>
+                    <div class="control-group">
+                        <button id="btn-horn" class="ctrl-btn yellow-btn">📢</button>
+                        <button id="btn-brake" class="ctrl-btn red-btn">ব্রেক</button>
+                        <button id="btn-gas" class="ctrl-btn green-btn">গ্যাস</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="controls-container">
-            <div class="btn-group">
-                <div class="btn" id="b-left">◄</div>
-                <div class="btn" id="b-right">►</div>
-            </div>
-            <div class="btn-group">
-                <div class="btn" id="b-brake" style="background:rgba(231,76,60,0.6)">ব্রেক</div>
-                <div class="btn" id="b-gas" style="background:rgba(46,204,113,0.6)">গ্যাস</div>
-            </div>
+
+        <!-- Start Overlay Screen -->
+        <div id="start-screen" class="overlay-screen">
+            <h1 class="game-title">ঢাকা চাকা ৩ডি</h1>
+            <p class="game-subtitle">আসল ঢাকা শহরের ড্রাইভ অভিজ্ঞতা - লোকাল বাস, রিকশা, সিএনজি ও টং দোকান</p>
+            <button id="start-btn" class="start-btn">গেম শুরু করুন</button>
         </div>
     </div>
 
-    <div class="overlay" id="start-screen">
-        <h1 style="color:#f1c40f; font-size:36px;">ঢাকা লোকাল বাস ৩ডি</h1>
-        <p style="margin-top:10px; color:#ccc;">কন্ট্রোল ও ক্যামেরা সম্পূর্ণ ফিক্স করা হয়েছে</p>
-        <button class="start-btn" onclick="startGame()">গেম খেলুন</button>
-    </div>
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 0;
+    padding: 0;
+}
 
-    <script>
-        let scene, camera, renderer, playerBus, roadSegment;
-        let speed = 0, busX = 0;
-        let keys = { f: false, b: false, l: false, r: false };
-        let active = false;
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #0b0f19;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
-        function init() {
-            const container = document.getElementById('canvas-container');
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
 
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB);
-            scene.fog = new THREE.Fog(0x87CEEB, 20, 150);
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+#hud-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px;
+}
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            container.appendChild(renderer.domElement);
+.hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
 
-            // Lighting
+.hud-card {
+    background: rgba(15, 23, 42, 0.85);
+    border: 2px solid #f59e0b;
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+}
+
+.hud-card .label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.hud-card .value {
+    font-size: 26px;
+    font-weight: bold;
+    color: #fbbf24;
+}
+
+.hud-card .value-blue {
+    font-size: 18px;
+    font-weight: bold;
+    color: #38bdf8;
+}
+
+.badge {
+    background: #10b981;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 4px;
+    align-self: flex-start;
+}
+
+.hud-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.speed-dial {
+    background: rgba(0, 0, 0, 0.85);
+    border: 3px solid #38bdf8;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.speed-dial #speed-num {
+    font-size: 26px;
+    font-weight: bold;
+    color: #38bdf8;
+    line-height: 1;
+}
+
+.speed-dial small {
+    font-size: 9px;
+    color: #94a3b8;
+}
+
+.touch-controls {
+    pointer-events: auto;
+    display: flex;
+    gap: 15px;
+}
+
+.control-group {
+    display: flex;
+    gap: 10px;
+}
+
+.ctrl-btn {
+    width: 65px;
+    height: 65px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    touch-action: manipulation;
+    cursor: pointer;
+}
+
+.ctrl-btn:active {
+    transform: scale(0.92);
+    background: #f59e0b;
+    color: #000;
+}
+
+.green-btn { background: rgba(16, 185, 129, 0.4); border-color: #10b981; }
+.red-btn { background: rgba(239, 68, 68, 0.4); border-color: #ef4444; }
+.yellow-btn { background: rgba(245, 158, 11, 0.4); border-color: #f59e0b; }
+
+.overlay-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(0,0,0,0.9));
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.game-title {
+    font-size: 42px;
+    color: #f59e0b;
+    margin-bottom: 10px;
+}
+
+.game-subtitle {
+    color: #cbd5e1;
+    font-size: 16px;
+    max-width: 480px;
+    margin-bottom: 25px;
+}
+
+.start-btn {
+    background: #10b981;
+    color: white;
+    font-size: 22px;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.start-btn:hover {
+    background: #059669;
+}
+import './style.css';
+
+console.log('Dhaka Bus Simulator - Phase 1 Loaded Successfully!');
+
+// Start Game Event listener
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-btn');
+    const startScreen = document.getElementById('start-screen');
+
+    startBtn.addEventListener('click', () => {
+        startScreen.style.display = 'none';
+        console.log('Game Started!');
+    });
+});
+export class Controls {
+    constructor() {
+        this.keys = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            boost: false,
+            horn: false
+        };
+
+        this.initKeyboard();
+        this.initTouchControls();
+    }
+
+    initKeyboard() {
+        window.addEventListener('keydown', (e) => this.handleKey(e, true));
+        window.addEventListener('keyup', (e) => this.handleKey(e, false));
+    }
+
+    handleKey(e, isPressed) {
+        switch (e.code) {
+            case 'KeyW':
+            case 'ArrowUp':
+                this.keys.forward = isPressed;
+                break;
+            case 'KeyS':
+            case 'ArrowDown':
+                this.keys.backward = isPressed;
+                break;
+            case 'KeyA':
+            case 'ArrowLeft':
+                this.keys.left = isPressed; // সঠিক বামের ড্রাইভিং কন্ট্রোল
+                break;
+            case 'KeyD':
+            case 'ArrowRight':
+                this.keys.right = isPressed; // সঠিক ডানের ড্রাইভিং কন্ট্রোল
+                break;
+            case 'ShiftLeft':
+            case 'ShiftRight':
+                this.keys.boost = isPressed;
+                break;
+            case 'KeyH':
+                this.keys.horn = isPressed;
+                break;
+        }
+    }
+
+    initTouchControls() {
+        this.bindTouch('btn-left', 'left');
+        this.bindTouch('btn-right', 'right');
+        this.bindTouch('btn-gas', 'forward');
+        this.bindTouch('btn-brake', 'backward');
+        this.bindTouch('btn-horn', 'horn');
+    }
+
+    bindTouch(btnId, action) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+
+        const start = (e) => {
+            e.preventDefault();
+            this.keys[action] = true;
+        };
+
+        const end = (e) => {
+            e.preventDefault();
+            this.keys[action] = false;
+        };
+
+        btn.addEventListener('touchstart', start, { passive: false });
+        btn.addEventListener('touchend', end, { passive: false });
+        btn.addEventListener('mousedown', start);
+        btn.addEventListener('mouseup', end);
+        btn.addEventListener('mouseleave', end);
+    }
+}
+import * as THREE from 'three';
+import { Controls } from './Controls.js';
+
+export class Game {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.isRunning = false;
+
+        this.initThreeJS();
+        this.controls = new Controls();
+        
+        window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    initThreeJS() {
+        // 3D Scene setup with Hazy Sky Fog (ঢাকা সিটির ধোঁয়াশাচ্ছন্ন পরিবেশ)
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x94a3b8);
+        this.scene.fog = new THREE.FogExp2(0x94a3b8, 0.008);
+
+        // Perspective Camera Setup
+        this.camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+
+        // WebGL Renderer Setup
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        this.container.appendChild(this.renderer.domElement);
+
+        // Natural Sun Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        this.scene.add(ambientLight);
+
+        this.sunLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+        this.sunLight.position.set(40, 80, 40);
+        this.sunLight.castShadow = true;
+        this.sunLight.shadow.mapSize.width = 2048;
+        this.sunLight.shadow.mapSize.height = 2048;
+        this.sunLight.shadow.camera.near = 0.5;
+        this.sunLight.shadow.camera.far = 150;
+        this.scene.add(this.sunLight);
+
+        // Initial Chase Camera Position
+        this.camera.position.set(0, 5, -10);
+        this.camera.lookAt(0, 1.8, 10);
+    }
+
+    start() {
+        this.isRunning = true;
+        this.animate();
+    }
+
+    animate() {
+        if (!this.isRunning) return;
+
+        requestAnimationFrame(() => this.animate());
+
+        // Basic rendering cycle
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+}
+import './style.css';
+import { Game } from './game/Game.js';
+
+let gameInstance = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-btn');
+    const startScreen = document.getElementById('start-screen');
+
+    // Initialize Game Engine
+    gameInstance = new Game('canvas-container');
+
+    startBtn.addEventListener('click', () => {
+        startScreen.style.display = 'none';
+        gameInstance.start();
+        console.log('Game Engine Rendered & Started Successfully!');
+    });
+});
+import * as THREE from 'three';
+
+export class Vehicle {
+    constructor(scene) {
+        this.scene = scene;
+        this.mesh = new THREE.Group();
+        this.speed = 0;
+        this.maxSpeed = 1.2;
+        this.acceleration = 0.015;
+        this.deceleration = 0.96;
+        this.steering = 0;
+        this.maxSteerAngle = 0.12;
+
+        this.scene.add(this.mesh);
+    }
+
+    getPosition() {
+        return this.mesh.position;
+    }
+
+    getSpeed() {
+        return Math.abs(this.speed);
+    }
+}
+import * as THREE from 'three';
+import { Vehicle } from './Vehicle.js';
+
+export class PlayerBus extends Vehicle {
+    constructor(scene) {
+        super(scene);
+        this.buildBusModel();
+    }
+
+    buildBusModel() {
+        // ১. বাসের মূল বডি (Green Local Bus Body)
+        const bodyGeo = new THREE.BoxGeometry(2.4, 2.6, 7.2);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.3 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 1.6;
+        body.castShadow = true;
+        body.receiveShadow = true;
+        this.mesh.add(body);
+
+        // ২. হলুদ স্ট্রাইপ (Local Bus Branding Pattern)
+        const stripeGeo = new THREE.BoxGeometry(2.42, 0.5, 7.1);
+        const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+        const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+        stripe.position.y = 1.3;
+        this.mesh.add(stripe);
+
+        // ৩. ছাদে ছ্যাঁকড়া/লাগেজ র‌্যাক (Roof Rack)
+        const rackGeo = new THREE.BoxGeometry(2.2, 0.3, 4.8);
+        const rackMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.5 });
+        const rack = new THREE.Mesh(rackGeo, rackMat);
+        rack.position.set(0, 3.05, -0.4);
+        this.mesh.add(rack);
+
+        // ৪. কাঁচের জানালা (Tinted Glass Windows)
+        const winMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 });
+        const winGeo = new THREE.BoxGeometry(2.44, 0.8, 5.0);
+        const windows = new THREE.Mesh(winGeo, winMat);
+        windows.position.set(0, 2.1, 0.2);
+        this.mesh.add(windows);
+
+        // ৫. সামনে উইন্ডশিল্ড (Front Windshield)
+        const frontWinGeo = new THREE.BoxGeometry(2.2, 1.0, 0.1);
+        const frontWin = new THREE.Mesh(frontWinGeo, winMat);
+        frontWin.position.set(0, 2.1, 3.56);
+        this.mesh.add(frontWin);
+
+        // ৬. হেডলাইট (Headlights)
+        const lightGeo = new THREE.BoxGeometry(0.4, 0.25, 0.1);
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+        const lightL = new THREE.Mesh(lightGeo, lightMat);
+        lightL.position.set(-0.8, 0.8, 3.61);
+        const lightR = lightL.clone();
+        lightR.position.x = 0.8;
+        this.mesh.add(lightL);
+        this.mesh.add(lightR);
+
+        // ৭. চাকা (Wheels)
+        const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.4, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+        wheelGeo.rotateZ(Math.PI / 2);
+
+        const wheelPositions = [
+            [-1.1, 0.6, 2.2], [1.1, 0.6, 2.2],   // সামনে
+            [-1.1, 0.6, -2.2], [1.1, 0.6, -2.2]  // পিছনে
+        ];
+
+        wheelPositions.forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+            wheel.position.set(...pos);
+            wheel.castShadow = true;
+            this.mesh.add(wheel);
+        });
+
+        // ৮. বাসের দরজায় ঝুলন্ত হেল্পার (Door Helper Character)
+        const helperGeo = new THREE.BoxGeometry(0.4, 1.0, 0.4);
+        const helperMat = new THREE.MeshStandardMaterial({ color: 0xe11d48 });
+        this.helper = new THREE.Mesh(helperGeo, helperMat);
+        this.helper.position.set(1.3, 1.4, 1.2); // ডানপাশের দরজায় ঝুলন্ত
+        this.mesh.add(this.helper);
+    }
+
+    update(controls) {
+        // গতি বাড়ানো/কমানো (Acceleration & Braking)
+        const currentMax = controls.keys.boost ? this.maxSpeed * 1.5 : this.maxSpeed;
+
+        if (controls.keys.forward) {
+            this.speed = Math.min(this.speed + this.acceleration, currentMax);
+        } else if (controls.keys.backward) {
+            this.speed = Math.max(this.speed - this.acceleration * 2, -this.maxSpeed * 0.3);
+        } else {
+            this.speed *= this.deceleration; // ঘর্ষণ কমানো
+        }
+
+        // সঠিক স্টিয়ারিং কন্ট্রোল (A/Left = বামে, D/Right = ডানে)
+        if (controls.keys.left) {
+            this.mesh.position.x -= 0.12;
+            this.mesh.rotation.y = 0.08;
+        } else if (controls.keys.right) {
+            this.mesh.position.x += 0.12;
+            this.mesh.rotation.y = -0.08;
+        } else {
+            this.mesh.rotation.y = 0;
+        }
+
+        // রাস্তায় বাসের সীমানা ধরে রাখা (Keep within road boundaries)
+        this.mesh.position.x = Math.max(-5.2, Math.min(5.2, this.mesh.position.x));
+
+        // হেল্পারের হালকা আন্দোলন (Procedural Helper Motion)
+        if (this.helper) {
+            this.helper.rotation.z = Math.sin(Date.now() * 0.01) * 0.1;
+        }
+    }
+}
+import * as THREE from 'three';
+import { Controls } from './Controls.js';
+import { PlayerBus } from './PlayerBus.js';
+
+export class Game {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.isRunning = false;
+
+        this.initThreeJS();
+        this.controls = new Controls();
+        this.playerBus = new PlayerBus(this.scene);
+
+        window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    initThreeJS() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x94a3b8);
+        this.scene.fog = new THREE.FogExp2(0x94a3b8, 0.008);
+
+        this.camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        this.container.appendChild(this.renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        this.scene.add(ambientLight);
+
+        this.sunLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+        this.sunLight.position.set(40, 80, 40);
+        this.sunLight.castShadow = true;
+        this.sunLight.shadow.mapSize.width = 2048;
+        this.sunLight.shadow.mapSize.height = 2048;
+        this.scene.add(this.sunLight);
+    }
+
+    start() {
+        this.isRunning = true;
+        this.animate();
+    }
+
+    animate() {
+        if (!this.isRunning) return;
+
+        requestAnimationFrame(() => this.animate());
+
+        // বাস আপডেট
+        this.playerBus.update(this.controls);
+
+        // স্মুথ থার্ড-পারসন ফলো ক্যামেরা
+        const busPos = this.playerBus.getPosition();
+        this.camera.position.x = busPos.x * 0.6;
+        this.camera.position.y = busPos.y + 4.8;
+        this.camera.position.z = busPos.z - 9.5;
+        this.camera.lookAt(busPos.x, busPos.y + 1.8, busPos.z + 10);
+
+        // স্পিডোমিটার আপডেট UI
+        const speedDisplay = document.getElementById('speed-num');
+        if (speedDisplay) {
+            speedDisplay.innerText = Math.floor(this.playerBus.getSpeed() * 85);
+        }
+
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+}
+import * as THREE from 'three';
+
+export class DhakaEnvironment {
+    constructor(scene) {
+        this.scene = scene;
+        this.roadGroup = new THREE.Group();
+        this.segmentLength = 25;
+        this.totalSegments = 16;
+        this.roadSegments = [];
+
+        this.initEnvironment();
+    }
+
+    initEnvironment() {
+        for (let i = 0; i < this.totalSegments; i++) {
+            const segment = this.createRoadSegment();
+            segment.position.z = i * this.segmentLength;
+            this.roadSegments.push(segment);
+            this.roadGroup.add(segment);
+        }
+        this.scene.add(this.roadGroup);
+    }
+
+    createRoadSegment() {
+        const seg = new THREE.Group();
+
+        // ১. মূল পিচ ঢালা রাস্তা (Asphalt Pitch Road)
+        const roadGeo = new THREE.PlaneGeometry(14, this.segmentLength);
+        const roadMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        road.rotation.x = -Math.PI / 2;
+        road.receiveShadow = true;
+        seg.add(road);
+
+        // ২. রাস্তার সেন্ট্রাল হলুদ রোড মার্কিং (Yellow Center Divider Line)
+        const lineGeo = new THREE.PlaneGeometry(0.3, this.segmentLength * 0.6);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+        const line = new THREE.Mesh(lineGeo, lineMat);
+        line.rotation.x = -Math.PI / 2;
+        line.position.y = 0.01;
+        seg.add(line);
+
+        // ৩. ফুটপাত (Concrete Sidewalks)
+        const walkGeo = new THREE.BoxGeometry(3.5, 0.3, this.segmentLength);
+        const walkMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+        
+        const walkL = new THREE.Mesh(walkGeo, walkMat);
+        walkL.position.set(-8.75, 0.15, 0);
+        walkL.receiveShadow = true;
+
+        const walkR = walkL.clone();
+        walkR.position.x = 8.75;
+
+        seg.add(walkL);
+        seg.add(walkR);
+
+        // ৪. খানাখন্দ / ড্রেনের স্লাব (Dhaka Potholes & Manholes)
+        if (Math.random() > 0.5) {
+            const holeGeo = new THREE.CylinderGeometry(0.7, 1.1, 0.02, 12);
+            const holeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+            const hole = new THREE.Mesh(holeGeo, holeMat);
+            hole.position.set((Math.random() - 0.5) * 8, 0.02, (Math.random() - 0.5) * 15);
+            seg.add(hole);
+        }
+
+        // ৫. রাস্তার পাশের টং দোকান, দোকানপাট ও বিল্ডিং
+        this.addRoadsideStructures(seg);
+
+        return seg;
+    }
+
+    addRoadsideStructures(seg) {
+        const side = Math.random() > 0.5 ? 1 : -1;
+        const xPos = side * 12.5;
+
+        // টং দোকান বা টিনের ঘর
+        if (Math.random() > 0.3) {
+            const shopGeo = new THREE.BoxGeometry(4, 3.2, 5);
+            const shopMat = new THREE.MeshStandardMaterial({ 
+                color: Math.random() > 0.5 ? 0x0284c7 : (Math.random() > 0.5 ? 0xd97706 : 0x059669),
+                roughness: 0.6 
+            });
+            const shop = new THREE.Mesh(shopGeo, shopMat);
+            shop.position.set(xPos, 1.6, (Math.random() - 0.5) * 10);
+            shop.castShadow = true;
+            seg.add(shop);
+
+            // দোকানের ওপর বাংলা ব্যানার/সাইনবোর্ড (Shop Banner Sign)
+            const signGeo = new THREE.BoxGeometry(3.6, 0.8, 0.1);
+            const signMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            const sign = new THREE.Mesh(signGeo, signMat);
+            sign.position.set(shop.position.x, 3.3, shop.position.z + (side > 0 ? -2.51 : 2.51));
+            seg.add(sign);
+        }
+
+        // ঢাকার ঘন বিল্ডিং (Dhaka Buildings)
+        const buildingGeo = new THREE.BoxGeometry(8, 12 + Math.random() * 15, 12);
+        const buildingMat = new THREE.MeshStandardMaterial({ 
+            color: Math.random() > 0.5 ? 0x94a3b8 : 0xcbd5e1,
+            roughness: 0.5 
+        });
+        const building = new THREE.Mesh(buildingGeo, buildingMat);
+        building.position.set(side * 18, buildingGeo.parameters.height / 2, (Math.random() - 0.5) * 8);
+        building.castShadow = true;
+        seg.add(building);
+    }
+
+    update(busSpeed) {
+        // বাস চলার সাথে সাথে রাস্তা পিছনের দিকে সরবে (Looping Road Engine)
+        const moveAmount = busSpeed * 10;
+
+        this.roadSegments.forEach(seg => {
+            seg.position.z -= moveAmount;
+
+            // রাস্তা পিছনে চলে গেলে সামনে রিলোড করবে
+            if (seg.position.z < -this.segmentLength) {
+                seg.position.z += this.totalSegments * this.segmentLength;
+            }
+        });
+    }
+}
+                import * as THREE from 'three';
+import { Controls } from './Controls.js';
+import { PlayerBus } from './PlayerBus.js';
+import { DhakaEnvironment } from './DhakaEnvironment.js';
+
+export class Game {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.isRunning = false;
+
+        this.initThreeJS();
+        this.controls = new Controls();
+        this.playerBus = new PlayerBus(this.scene);
+        this.environment = new DhakaEnvironment(this.scene);
+
+        window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    initThreeJS() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x7dd3fc); // ঢাকার ধোঁয়াশাচ্ছন্ন হালকা নীল আকাশ
+        this.scene.fog = new THREE.FogExp2(0x7dd3fc, 0.008);
+
+        this.camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        this.container.appendChild(this.renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        this.scene.add(ambientLight);
+
+        this.sunLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+        this.sunLight.position.set(40, 80, 40);
+        this.sunLight.castShadow = true;
+        this.sunLight.shadow.mapSize.width = 2048;
+        this.sunLight.shadow.mapSize.height = 2048;
+        this.scene.add(this.sunLight);
+    }
+
+    start() {
+        this.isRunning = true;
+        this.animate();
+    }
+
+    animate() {
+        if (!this.isRunning) return;
+
+        requestAnimationFrame(() => this.animate());
+
+        // প্লেয়ার বাস আপডেট
+        this.playerBus.update(this.controls);
+
+        // ঢাকা এনভায়রনমেন্ট আপডেট (রাস্তা ও বিল্ডিং মুভমেন্ট)
+        const busSpeed = this.playerBus.getSpeed();
+        this.environment.update(busSpeed);
+
+        // স্মুথ থার্ড-পারসন চেইস ক্যামেরা
+        const busPos = this.playerBus.getPosition();
+        this.camera.position.x = busPos.x * 0.6;
+        this.camera.position.y = busPos.y + 4.8;
+        this.camera.position.z = busPos.z - 9.5;
+        this.camera.lookAt(busPos.x, busPos.y + 1.8, busPos.z + 10);
+
+        // স্পিডোমিটার আপডেট UI
+        const speedDisplay = document.getElementById('speed-num');
+        if (speedDisplay) {
+            speedDisplay.innerText = Math.floor(busSpeed * 85);
+        }
+
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+}
+                /* =========================================================
+   PHASE 5: TRAFFIC MANAGER (রিকশা, সিএনজি, লেগুনা ও ট্রাফিক বাস)
+   ========================================================= */
+
+class TrafficManager {
+    constructor(scene) {
+        this.scene = scene;
+        this.vehicles = [];
+        this.totalTraffic = 10;
+
+        this.initTraffic();
+    }
+
+    initTraffic() {
+        for (let i = 0; i < this.totalTraffic; i++) {
+            const vehicle = this.createRandomVehicle();
+            vehicle.position.set(
+                (Math.floor(Math.random() * 3) - 1) * 3.8, // ৩টি লেনে ট্রাফিক ভাগ করা
+                0,
+                40 + i * 25
+            );
+            vehicle.userData = { 
+                speed: 0.15 + Math.random() * 0.25,
+                type: vehicle.userData.type 
+            };
+            this.vehicles.push(vehicle);
+            this.scene.add(vehicle);
+        }
+    }
+
+    createRandomVehicle() {
+        const rand = Math.random();
+
+        if (rand < 0.4) {
+            return this.createCNG(); // সিএনজি
+        } else if (rand < 0.7) {
+            return this.createRickshaw(); // রিকশা
+        } else {
+            return this.createTrafficBus(); // অন্যান্য লোকাল বাস (ভিক্টর/বলাকা)
+        }
+    }
+
+    // ১. সবুজ সিএনজি (CNG Auto Rickshaw)
+    createCNG() {
+        const cngGroup = new THREE.Group();
+        cngGroup.userData = { type: 'cng' };
+
+        const bodyGeo = new THREE.BoxGeometry(1.6, 1.6, 2.5);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.4 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.8;
+        body.castShadow = true;
+        cngGroup.add(body);
+
+        // সিএনজির কালো ছাদ
+        const roofGeo = new THREE.BoxGeometry(1.62, 0.2, 2.52);
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.y = 1.6;
+        cngGroup.add(roof);
+
+        return cngGroup;
+    }
+
+    // ২. ঢাকাইয়া রিকশা (Rickshaw)
+    createRickshaw() {
+        const rksGroup = new THREE.Group();
+        rksGroup.userData = { type: 'rickshaw' };
+
+        // রিকশার বডি ও হুড
+        const bodyGeo = new THREE.BoxGeometry(1.3, 1.2, 2.0);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c }); // লাল হুড
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.7;
+        body.castShadow = true;
+        rksGroup.add(body);
+
+        // রিকশার সিট
+        const seatGeo = new THREE.BoxGeometry(1.1, 0.4, 0.8);
+        const seatMat = new THREE.MeshStandardMaterial({ color: 0xfacc15 });
+        const seat = new THREE.Mesh(seatGeo, seatMat);
+        seat.position.set(0, 0.8, -0.3);
+        rksGroup.add(seat);
+
+        return rksGroup;
+    }
+
+    // ৩. ট্রাফিক লোকাল বাস (Victor Classic / Balaka)
+    createTrafficBus() {
+        const busGroup = new THREE.Group();
+        busGroup.userData = { type: 'bus' };
+
+        const bodyGeo = new THREE.BoxGeometry(2.3, 2.5, 7.0);
+        const busColors = [0x1d4ed8, 0xd97706, 0x7c3aed]; // নীল, কমলা, বেগুনি
+        const chosenColor = busColors[Math.floor(Math.random() * busColors.length)];
+        
+        const bodyMat = new THREE.MeshStandardMaterial({ color: chosenColor, roughness: 0.3 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 1.3;
+        body.castShadow = true;
+        busGroup.add(body);
+
+        return busGroup;
+    }
+
+    update(playerBusSpeed, playerBusPos) {
+        this.vehicles.forEach(vehicle => {
+            // বাস চললে ট্রাফিক পিছনের দিকে সরবে
+            vehicle.position.z -= (playerBusSpeed * 10) - (vehicle.userData.speed * 3);
+
+            // ট্রাফিক সামনে বা পিছনে বেশি চলে গেলে আবার রিলোড হবে
+            if (vehicle.position.z < -20) {
+                vehicle.position.z = 180 + Math.random() * 50;
+                vehicle.position.x = (Math.floor(Math.random() * 3) - 1) * 3.8;
+            }
+
+            // বাসের সাথে সংঘর্ষ পরীক্ষা (Collision Detection)
+            if (Math.abs(playerBusPos.z - vehicle.position.z) < 4.8 &&
+                Math.abs(playerBusPos.x - vehicle.position.x) < 2.0) {
+                
+                // হালকা ধাক্কা দেওয়া এবং ট্রাফিককে সড়িয়ে দেওয়া
+                vehicle.position.x += (vehicle.position.x > playerBusPos.x ? 0.8 : -0.8);
+            }
+        });
+    }
+}
+                    
