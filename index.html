@@ -3,619 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ঢাকা চাকা - Dhaka Local Bus Simulator 3D</title>
+    <title>ঢাকা চাকা 3D - Fixed Architecture</title>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            margin: 0;
-            padding: 0;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-        
-        /* UI Overlay */
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 15px;
-        }
-
-        .hud-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .score-card {
-            background: rgba(10, 15, 30, 0.85);
-            border: 2px solid #f39c12;
-            border-radius: 10px;
-            padding: 10px 18px;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
-        }
-        .score-val {
-            font-size: 26px;
-            font-weight: bold;
-            color: #f1c40f;
-        }
-        .route-badge {
-            background: #27ae60;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
-            margin-top: 5px;
-            display: inline-block;
-        }
-
-        /* Speedometer & Boost */
-        .hud-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 10px;
-        }
-        .speed-box {
-            background: rgba(0,0,0,0.8);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid #34495e;
-            color: #fff;
-            text-align: center;
-        }
-        .speed-num {
-            font-size: 32px;
-            font-weight: bold;
-            color: #00d2d3;
-        }
-
-        /* Mobile Controls */
-        .controls-container {
-            pointer-events: auto;
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            padding: 0 10px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-        }
-        .touch-btn {
-            width: 70px;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            touch-action: manipulation;
-        }
-        .touch-btn:active {
-            background: rgba(241, 196, 15, 0.6);
-            transform: scale(0.95);
-        }
-        .btn-boost {
-            background: rgba(231, 76, 60, 0.4);
-            border-color: #e74c3c;
-        }
-
-        /* Start / Game Over Screens */
-        .overlay-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        .title {
-            font-size: 42px;
-            color: #f1c40f;
-            text-shadow: 3px 3px #c0392b;
-            margin-bottom: 10px;
-        }
-        .sub-title {
-            font-size: 18px;
-            color: #bdc3c7;
-            margin-bottom: 25px;
-        }
-        .start-btn {
-            background: #27ae60;
-            color: white;
-            font-size: 22px;
-            padding: 12px 35px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
-            transition: all 0.2s;
-        }
-        .start-btn:hover {
-            transform: scale(1.05);
-            background: #2ecc71;
-        }
-        .instructions {
-            margin-top: 25px;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            max-width: 400px;
-            line-height: 1.6;
-        }
+        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
+        .hud-top { display: flex; justify-content: space-between; }
+        .box { background: rgba(0,0,0,0.75); border: 2px solid #f1c40f; color: white; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
+        .controls-container { pointer-events: auto; display: flex; width: 100%; justify-content: space-between; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { width: 65px; height: 65px; background: rgba(255,255,255,0.3); border: 2px solid white; border-radius: 50%; color: white; font-size: 20px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
+        .btn:active { background: #f1c40f; color: black; }
+        .overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; text-align:center; }
+        .start-btn { background:#27ae60; color:white; font-size:22px; padding:12px 30px; border:none; border-radius:25px; cursor:pointer; font-weight:bold; margin-top:15px; }
     </style>
-    <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
     <div id="canvas-container"></div>
 
-    <!-- HUD Layer -->
     <div id="hud">
         <div class="hud-top">
-            <div class="score-card">
-                <div>স্কোর (SCORE)</div>
-                <div class="score-val" id="score-display">000000</div>
-                <div class="route-badge" id="bus-name-badge">বাস: বলাকা এক্সপ্রেস</div>
-            </div>
-            <div class="score-card" style="border-color: #3498db;">
-                <div>বর্তমান এলাকা</div>
-                <div style="font-weight:bold; color:#3498db;" id="location-display">মিরপুর ১০ মোড়</div>
-            </div>
+            <div class="box">স্কোর: <span id="score" style="color:#f1c40f">0</span> | রুট: <span style="color:#2ecc71">মিরপুর ১০</span></div>
+            <div class="box">স্পিড: <span id="speed" style="color:#3498db">0</span> KM/H</div>
         </div>
-
-        <div class="hud-bottom">
-            <div class="speed-box">
-                <div class="speed-num" id="speed-display">0</div>
-                <div style="font-size: 12px; color:#aaa;">KM/H</div>
+        <div class="controls-container">
+            <div class="btn-group">
+                <div class="btn" id="b-left">◄</div>
+                <div class="btn" id="b-right">►</div>
             </div>
-
-            <!-- On-screen Touch Controls -->
-            <div class="controls-container">
-                <div class="btn-group">
-                    <div class="touch-btn" id="btn-left">◄</div>
-                    <div class="touch-btn" id="btn-right">►</div>
-                </div>
-                <div class="btn-group">
-                    <div class="touch-btn btn-boost" id="btn-boost">🚀</div>
-                    <div class="touch-btn" id="btn-brake" style="background:rgba(192, 57, 43, 0.5)">BREAK</div>
-                    <div class="touch-btn" id="btn-gas" style="background:rgba(39, 174, 96, 0.5)">GAS</div>
-                </div>
+            <div class="btn-group">
+                <div class="btn" id="b-brake" style="background:rgba(231,76,60,0.6)">ব্রেক</div>
+                <div class="btn" id="b-gas" style="background:rgba(46,204,113,0.6)">গ্যাস</div>
             </div>
         </div>
     </div>
 
-    <!-- Start Overlay Screen -->
-    <div class="overlay-screen" id="start-screen">
-        <h1 class="title">ঢাকা চাকা 3D</h1>
-        <p class="sub-title">আসল ড্রাইভিং সিমুলেটর - মোড়, খানাখন্দ ও লোকাল বাস</p>
-        <button class="start-btn" onclick="startGame()">গেম শুরু করুন</button>
-        
-        <div class="instructions">
-            <b>কন্ট্রোল নির্দেশিকা:</b><br>
-            • <b>W / Up Arrow:</b> এক্সিলারেট (Gas)<br>
-            • <b>S / Down Arrow:</b> ব্রেক (Brake)<br>
-            • <b>A / Left Arrow:</b> বামে ঘোরান (Steer Left)<br>
-            • <b>D / Right Arrow:</b> ডানে ঘোরান (Steer Right)<br>
-            • <b>Shift:</b> টার্বো বুস্ট | <b>H:</b> হর্ন দিন ("পি-পি!")
-        </div>
+    <div class="overlay" id="start-screen">
+        <h1 style="color:#f1c40f; font-size:36px;">ঢাকা লোকাল বাস ৩ডি</h1>
+        <p style="margin-top:10px; color:#ccc;">কন্ট্রোল ও ক্যামেরা সম্পূর্ণ ফিক্স করা হয়েছে</p>
+        <button class="start-btn" onclick="startGame()">গেম খেলুন</button>
     </div>
 
     <script>
-        /* --- GAME ENGINE & SETUP --- */
-        let scene, camera, renderer;
-        let playerBus, roadGroup, trafficVehicles = [], environmentObjects = [];
-        let speed = 0, maxSpeed = 1.2, acceleration = 0.015, steering = 0;
-        let score = 0;
-        let gameActive = false;
-        
-        // Bus Brands in Dhaka
-        const busBrands = [
-            { name: "বলাকা সার্ভিস", color: 0xc0392b, text: "BALAKA" },
-            { name: "ভিক্টর ক্লাসিক", color: 0x2980b9, text: "VICTOR" },
-            { name: "অসীম পরিবহন", color: 0x27ae60, text: "ASIM" },
-            { name: "রাইদা এন্টারপ্রাইজ", color: 0x8e44ad, text: "RAIDA" },
-            { name: "তুরাগ ট্রান্সপোর্ট", color: 0xd35400, text: "TURAG" }
-        ];
-
-        // Input Tracking
-        const keys = { forward: false, backward: false, left: false, right: false, boost: false };
+        let scene, camera, renderer, playerBus, roadSegment;
+        let speed = 0, busX = 0;
+        let keys = { f: false, b: false, l: false, r: false };
+        let active = false;
 
         function init() {
             const container = document.getElementById('canvas-container');
 
-            // Scene setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa0d8ef); // Dhaka Daytime Fog Sky
-            scene.fog = new THREE.FogExp2(0xa0d8ef, 0.012);
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 20, 150);
 
-            // Camera setup
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-            // Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
-
-            const sunLight = new THREE.DirectionalLight(0xfffaed, 0.8);
-            sunLight.position.set(50, 100, 50);
-            sunLight.castShadow = true;
-            sunLight.shadow.mapSize.width = 1024;
-            sunLight.shadow.mapSize.height = 1024;
-            scene.add(sunLight);
-
-            // Build Curved Dhaka Road Engine & Environment
-            createRoadNetwork();
-            createPlayerBus();
-            spawnTraffic();
-            setupControls();
-
-            // Window resize handler
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        /* --- 3D MODEL CREATORS --- */
-
-        // 1. Player Bus (Detailed Local Bus)
-        function createPlayerBus() {
-            playerBus = new THREE.Group();
-
-            // Bus Body
-            const bodyGeo = new THREE.BoxGeometry(2.4, 2.6, 7.5);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x27ae60, roughness: 0.3 });
-            const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-            bodyMesh.position.y = 1.6;
-            bodyMesh.castShadow = true;
-            playerBus.add(bodyMesh);
-
-            // Bus Roof Rack
-            const rackGeo = new THREE.BoxGeometry(2.2, 0.3, 5.0);
-            const rackMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d });
-            const rack = new THREE.Mesh(rackGeo, rackMat);
-            rack.position.set(0, 3.0, -0.5);
-            playerBus.add(rack);
-
-            // Windows
-            const winMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
-            const sideWinGeo = new THREE.BoxGeometry(2.42, 0.8, 5.5);
-            const sideWin = new THREE.Mesh(sideWinGeo, winMat);
-            sideWin.position.set(0, 2.1, -0.2);
-            playerBus.add(sideWin);
-
-            // Front Windshield
-            const frontWinGeo = new THREE.BoxGeometry(2.2, 1.0, 0.1);
-            const frontWin = new THREE.Mesh(frontWinGeo, winMat);
-            frontWin.position.set(0, 2.1, 3.71);
-            playerBus.add(frontWin);
-
-            // Headlights
-            const lightGeo = new THREE.BoxGeometry(0.4, 0.3, 0.1);
-            const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffae0 });
-            const headL = new THREE.Mesh(lightGeo, lightMat);
-            headL.position.set(-0.8, 0.8, 3.76);
-            const headR = headL.clone();
-            headR.position.x = 0.8;
-            playerBus.add(headL);
-            playerBus.add(headR);
-
-            // Wheels
-            const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.5, 16);
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-            wheelGeo.rotateZ(Math.PI / 2);
-
-            const wheelPositions = [
-                [-1.1, 0.6, 2.2], [1.1, 0.6, 2.2],   // Front wheels
-                [-1.1, 0.6, -2.2], [1.1, 0.6, -2.2]  // Rear wheels
-            ];
-
-            wheelPositions.forEach(pos => {
-                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-                wheel.position.set(...pos);
-                wheel.castShadow = true;
-                playerBus.add(wheel);
-            });
-
-            // Bus Helper hanging at the doorway
-            const helperGeo = new THREE.BoxGeometry(0.4, 0.9, 0.4);
-            const helperMat = new THREE.MeshStandardMaterial({ color: 0xe67e22 });
-            const helper = new THREE.Mesh(helperGeo, helperMat);
-            helper.position.set(1.3, 1.4, 1.5); // Hanging on right side door
-            playerBus.add(helper);
-
-            playerBus.position.set(0, 0, 0);
-            scene.add(playerBus);
-        }
-
-        // 2. Curved Dhaka Road System & Potholes
-        function createRoadNetwork() {
-            roadGroup = new THREE.Group();
-
-            // Main Road Tiles (Infinite Loop simulation)
-            for (let i = 0; i < 20; i++) {
-                const segment = createRoadSegment(i);
-                segment.position.z = i * 20;
-                roadGroup.add(segment);
-            }
-            scene.add(roadGroup);
-        }
-
-        function createRoadSegment(index) {
-            const segGroup = new THREE.Group();
-
-            // Asphalt Road
-            const roadGeo = new THREE.PlaneGeometry(14, 20);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.rotation.x = -Math.PI / 2;
-            road.receiveShadow = true;
-            segGroup.add(road);
-
-            // Sidewalks (ফুটপাত)
-            const walkGeo = new THREE.BoxGeometry(3, 0.4, 20);
-            const walkMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d });
-            
-            const walkL = new THREE.Mesh(walkGeo, walkMat);
-            walkL.position.set(-8.5, 0.2, 0);
-            const walkR = walkL.clone();
-            walkR.position.x = 8.5;
-
-            segGroup.add(walkL);
-            segGroup.add(walkR);
-
-            // Potholes / ভাঙাচোরা রাস্তা
-            if (Math.random() > 0.6) {
-                const holeGeo = new THREE.CylinderGeometry(0.8, 1.2, 0.05, 8);
-                const holeMat = new THREE.MeshBasicMaterial({ color: 0x1a1a1a });
-                const pothole = new THREE.Mesh(holeGeo, holeMat);
-                pothole.position.set((Math.random() - 0.5) * 8, 0.01, (Math.random() - 0.5) * 10);
-                segGroup.add(pothole);
-            }
-
-            // Roadside Shops, Vans & Pedestrians (দোকানপাট ও হকার)
-            createRoadsideDetails(segGroup);
-
-            return segGroup;
-        }
-
-        function createRoadsideDetails(group) {
-            // Street Shops & Tea Stalls
-            if (Math.random() > 0.4) {
-                const shopGeo = new THREE.BoxGeometry(3.5, 3, 4);
-                const shopMat = new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0xd35400 : 0x2980b9 });
-                const shop = new THREE.Mesh(shopGeo, shopMat);
-                const side = Math.random() > 0.5 ? 11 : -11;
-                shop.position.set(side, 1.5, (Math.random() - 0.5) * 10);
-                group.add(shop);
-
-                // Shop Sign board (বাংলা সাইনবোর্ড)
-                const signGeo = new THREE.BoxGeometry(3.2, 0.8, 0.1);
-                const signMat = new THREE.MeshBasicMaterial({ color: 0xf1c40f });
-                const sign = new THREE.Mesh(signGeo, signMat);
-                sign.position.set(side, 3.2, shop.position.z + 2.01);
-                group.add(sign);
-            }
-
-            // Fruit Vans / Rickshaws
-            if (Math.random() > 0.5) {
-                const vanGeo = new THREE.BoxGeometry(1.5, 0.8, 2.2);
-                const vanMat = new THREE.MeshStandardMaterial({ color: 0x8e44ad });
-                const van = new THREE.Mesh(vanGeo, vanMat);
-                van.position.set(Math.random() > 0.5 ? 7.2 : -7.2, 0.4, (Math.random() - 0.5) * 12);
-                group.add(van);
-            }
-        }
-
-        // 3. Traffic System (CNG, Rickshaw, Other Local Buses)
-        function spawnTraffic() {
-            for (let i = 0; i < 8; i++) {
-                const brand = busBrands[Math.floor(Math.random() * busBrands.length)];
-                
-                // Spawn Traffic Bus / Vehicle
-                const tBusGeo = new THREE.BoxGeometry(2.3, 2.5, 7);
-                const tBusMat = new THREE.MeshStandardMaterial({ color: brand.color });
-                const tBus = new THREE.Mesh(tBusGeo, tBusMat);
-
-                tBus.position.set(
-                    (Math.floor(Math.random() * 3) - 1) * 3.8, // 3 Lanes
-                    1.25,
-                    50 + i * 35
-                );
-
-                tBus.userData = { speed: 0.3 + Math.random() * 0.3, brandName: brand.name };
-                trafficVehicles.push(tBus);
-                scene.add(tBus);
-            }
-        }
-
-        /* --- CONTROLS & INPUT SYSTEM --- */
-        function setupControls() {
-            // Keyboard Key Down
-            window.addEventListener('keydown', (e) => {
-                if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.forward = true;
-                if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.backward = true;
-                if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;  // Fixed Correct Left
-                if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true; // Fixed Correct Right
-                if (e.shiftKey) keys.boost = true;
-                if (e.code === 'KeyH') playHornSound();
-            });
-
-            // Keyboard Key Up
-            window.addEventListener('keyup', (e) => {
-                if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.forward = false;
-                if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.backward = false;
-                if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
-                if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
-                if (!e.shiftKey) keys.boost = false;
-            });
-
-            // Touch Controls for Mobile
-            bindTouch('btn-left', () => keys.left = true, () => keys.left = false);
-            bindTouch('btn-right', () => keys.right = true, () => keys.right = false);
-            bindTouch('btn-gas', () => keys.forward = true, () => keys.forward = false);
-            bindTouch('btn-brake', () => keys.backward = true, () => keys.backward = false);
-            bindTouch('btn-boost', () => keys.boost = true, () => keys.boost = false);
-        }
-
-        function bindTouch(id, onPress, onRelease) {
-            const btn = document.getElementById(id);
-            if(!btn) return;
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); onPress(); });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); onRelease(); });
-            btn.addEventListener('mousedown', onPress);
-            btn.addEventListener('mouseup', onRelease);
-        }
-
-        /* --- AUDIO SYNTHESIS (Web Audio API) --- */
-        function playHornSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(420, ctx.currentTime);
-                osc.frequency.setValueAtTime(380, ctx.currentTime + 0.15); // Dual pitch bus horn
-                
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                osc.start();
-                osc.stop(ctx.currentTime + 0.4);
-            } catch(e) {}
-        }
-
-        /* --- MAIN GAME LOOP --- */
-        function update() {
-            if (!gameActive) return;
-
-            // Acceleration & Speed Logic
-            let currentMaxSpeed = keys.boost ? maxSpeed * 1.6 : maxSpeed;
-
-            if (keys.forward) {
-                speed = Math.min(speed + acceleration, currentMaxSpeed);
-            } else if (keys.backward) {
-                speed = Math.max(speed - acceleration * 2, -maxSpeed * 0.4);
-            } else {
-                speed *= 0.96; // Friction deceleration
-            }
-
-            // Correct Steering Control Logic
-            if (keys.left) {
-                playerBus.position.x -= 0.12; // Steering Left
-                playerBus.rotation.y = 0.08;
-            } else if (keys.right) {
-                playerBus.position.x += 0.12; // Steering Right
-                playerBus.rotation.y = -0.08;
-            } else {
-                playerBus.rotation.y = 0;
-            }
-
-            // Keep Bus on Road
-            playerBus.position.x = Math.max(-5.5, Math.min(5.5, playerBus.position.x));
-
-            // Move Road to simulate forward driving
-            roadGroup.children.forEach(seg => {
-                seg.position.z -= speed * 12;
-                if (seg.position.z < -20) {
-                    seg.position.z += 400; // Loop back
-                }
-            });
-
-            // Update Traffic Vehicles
-            trafficVehicles.forEach(tBus => {
-                tBus.position.z -= (speed * 12) - tBus.userData.speed;
-                
-                if (tBus.position.z < -20) {
-                    tBus.position.z = 180 + Math.random() * 50;
-                    tBus.position.x = (Math.floor(Math.random() * 3) - 1) * 3.8;
-                }
-
-                // Simple Box Collision Detection
-                if (Math.abs(playerBus.position.z - tBus.position.z) < 6.5 &&
-                    Math.abs(playerBus.position.x - tBus.position.x) < 2.0) {
-                    // Collision Impact
-                    speed = -0.2; // Knockback
-                }
-            });
-
-            // Update Third-Person Chase Camera
-            camera.position.x = playerBus.position.x * 0.7;
-            camera.position.y = playerBus.position.y + 4.5;
-            camera.position.z = playerBus.position.z - 11;
-            camera.lookAt(playerBus.position.x, playerBus.position.y + 1.8, playerBus.position.z + 10);
-
-            // Update Score & HUD
-            score += Math.floor(speed * 10);
-            document.getElementById('score-display').innerText = String(score).padStart(6, '0');
-            document.getElementById('speed-display').innerText = Math.floor(speed * 85);
-
-            renderer.render(scene, camera);
-            requestAnimationFrame(update);
-        }
-
-        function startGame() {
-            document.getElementById('start-screen').style.display = 'none';
-            gameActive = true;
-            update();
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // Initialize Application
-        window.onload = init;
-    </script>
-</body>
-</html>
